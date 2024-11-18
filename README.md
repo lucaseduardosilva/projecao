@@ -1,1 +1,1 @@
-[Acesse o site](https://lucaseduardosilva.github.io/projecao/){:target="_blank"}
+Acesse o <a href="https://lucaseduardosilva.github.io/projecao/" target="_blank">site</a> em outra aba.
