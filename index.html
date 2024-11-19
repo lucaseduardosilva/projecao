@@ -15,10 +15,7 @@
         display: flex;
         justify-content: center;
         align-items: center;
-        height: 100vh;
-        margin: 0;
         flex-direction: column;
-        padding: 20px;
       }
 
       h2 {
@@ -33,8 +30,6 @@
         gap: 20px;
         margin-bottom: 20px;
         width: 90%;
-        justify-content: flex-start;
-        text-align: left;
         background-color: #fff;
         border-radius: 8px;
         padding: 20px;
@@ -44,8 +39,19 @@
       .input-fields {
         display: flex;
         justify-content: space-between;
-        gap: 20px;
         width: 800px;
+      }
+
+      .input-fields-2 {
+        display: flex;
+        justify-content: space-around;
+        width: 800px;
+        margin: 16px 0px 0px 0px;
+      }
+
+      .input-x {
+        display: flex;
+        flex-direction: column;
       }
 
       #informativos p {
@@ -59,9 +65,7 @@
         font-size: 1rem;
         border-radius: 6px;
         border: 1px solid #ccc;
-        width: 100%;
         max-width: 200px;
-        transition: all 0.3s ease;
       }
 
       #informativos input:focus {
@@ -76,6 +80,7 @@
       #projectionTableWrapper {
         width: 100%;
         max-width: 900px;
+        height: 450px;
         overflow: auto;
         border-radius: 8px;
         background-color: #fff;
@@ -134,32 +139,33 @@
           width: 100%;
           display: flex;
           justify-content: center;
+          align-items: center;
           flex-direction: column;
         "
       >
         <div class="input-fields">
-          <p>
+          <div class="input-x">
             <strong>Banca inicial:</strong>
-            <input type="number" id="bankInput" value="0" />
-          </p>
-          <p>
+            <input type="number" id="bankInput" value="15" />
+          </div>
+          <div class="input-x">
             <strong>Dias:</strong>
             <input type="number" id="daysInput" value="240" />
-          </p>
-          <p>
+          </div>
+          <div class="input-x">
             <strong>Operações:</strong>
             <input type="number" id="operationsInput" value="3" />
-          </p>
+          </div>
         </div>
-        <div class="input-fields">
-          <p>
+        <div class="input-fields-2">
+          <div class="input-x">
             <strong>Ticks por operação:</strong>
-            <input type="number" id="ticksInput" value="0" />
-          </p>
-          <p>
+            <input type="number" id="ticksInput" value="500" />
+          </div>
+          <div class="input-x">
             <strong>Meta:</strong>
             <input type="number" id="targetInput" value="200000.00" />
-          </p>
+          </div>
         </div>
       </div>
       <div style="width: 100%; display: flex; justify-content: center">
@@ -175,15 +181,17 @@
             <p>
               <strong>Banca Final:</strong> <span id="finalBankValue"></span>
             </p>
-            <p><strong>Banca Inicial:</strong> US$ 15.00</p>
+            <p>
+              <strong>Banca Inicial:</strong> US$
+              <span id="initialBankDisplay">15.00</span>
+            </p>
             <p>
               <strong>% de Lucro Diário:</strong>
               <span id="dailyProfitPercentage"></span>%
             </p>
           </div>
           <div>
-            <p><strong>Valor Máximo do Lote:</strong> US$ 200.00</p>
-            <p><strong>Ticks por Operação:</strong> 500</p>
+            <p><strong>Valor Máximo do Lote:</strong> 200.00</p>
             <p><strong>Valor de cada Tick:</strong> US$ 0.001</p>
             <p>
               <strong>Meta batida com:</strong>
@@ -215,6 +223,9 @@
 
     <script>
       function generateProjection() {
+        const initialBank = parseFloat(
+          document.querySelector("#bankInput").value
+        );
         const days = parseInt(document.querySelector("#daysInput").value);
         const operationsPerDay = parseInt(
           document.querySelector("#operationsInput").value
@@ -222,19 +233,28 @@
         const targetValue = parseFloat(
           document.querySelector("#targetInput").value
         );
-        let bank = 15;
+        const ticksPerOperation = parseInt(
+          document.querySelector("#ticksInput").value
+        );
+        document.querySelector("#initialBankDisplay").textContent =
+          initialBank.toFixed(2);
+
+        let bank = initialBank;
         const maxLotValue = 200.0;
-        let target = bank;
-        let lotValue = 0.01;
-        const ticksPerOperation = 500;
-        const tickValue = 0.001;
+        const tickValue = 0.1;
+        const lotCost = 13.12;
+
+        let lotValue = Math.floor(bank / lotCost) * 0.01;
+        if (lotValue > maxLotValue) {
+          lotValue = maxLotValue;
+        }
 
         let dailyPercentage =
-          operationsPerDay === 3
-            ? 10
-            : ((10 / 3) * operationsPerDay).toFixed(2);
+          ((operationsPerDay * ticksPerOperation * tickValue * lotValue) /
+            bank) *
+          100;
         document.querySelector("#dailyProfitPercentage").textContent =
-          dailyPercentage;
+          dailyPercentage.toFixed(2);
 
         let currentMonth = 1;
         const tableBody = document.querySelector("#projectionTable tbody");
@@ -244,34 +264,22 @@
         let greenRowAdded = false;
         let targetAchievedDay = null;
 
-        let initialDailyProfit = null;
-
         for (let day = 1; day <= days; day++) {
           if (day % 20 === 1 && day !== 1) {
             currentMonth += 1;
           }
 
           if (day % 10 === 1 && day !== 1) {
-            target = bank;
             if (lotValue < maxLotValue) {
-              lotValue *= 2;
+              lotValue = Math.min(
+                maxLotValue,
+                Math.floor(bank / lotCost) * 0.01
+              );
             }
-            if (lotValue > maxLotValue) {
-              lotValue = maxLotValue;
-            }
-            initialDailyProfit =
-              operationsPerDay *
-              ticksPerOperation *
-              tickValue *
-              (lotValue / 0.01);
           }
 
           const dailyProfit =
-            initialDailyProfit ||
-            operationsPerDay *
-              ticksPerOperation *
-              tickValue *
-              (lotValue / 0.01);
+            operationsPerDay * ticksPerOperation * tickValue * lotValue;
 
           bank += dailyProfit;
 
@@ -286,10 +294,10 @@
           row.innerHTML = `
             <td>${day}</td>
             <td>${currentMonth}</td>
-            <td>${target.toFixed(2)}</td>
+            <td>${(bank - dailyProfit).toFixed(2)}</td>
             <td>${dailyProfit.toFixed(2)}</td>
             <td>${bank.toFixed(2)}</td>
-            <td>${dailyPercentage}</td>
+            <td>${dailyPercentage.toFixed(2)}</td>
             <td>${lotValue.toFixed(2)}</td>
             <td>${operationsPerDay}</td>
             <td>${ticksPerOperation}</td>
@@ -302,22 +310,23 @@
           style: "currency",
           currency: "USD",
         }).format(bank);
-
         document.querySelector("#finalBankValue").textContent =
           formattedBankValue;
-
-        const targetAchievedMessage = targetAchievedDay
-          ? `${targetAchievedDay}`
-          : "?";
         document.querySelector("#targetAchievedDay").textContent =
-          targetAchievedMessage;
+          targetAchievedDay;
       }
 
+      document
+        .querySelector("#bankInput")
+        .addEventListener("input", generateProjection);
       document
         .querySelector("#daysInput")
         .addEventListener("input", generateProjection);
       document
         .querySelector("#operationsInput")
+        .addEventListener("input", generateProjection);
+      document
+        .querySelector("#ticksInput")
         .addEventListener("input", generateProjection);
       document
         .querySelector("#targetInput")
