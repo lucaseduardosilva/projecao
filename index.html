@@ -44,7 +44,7 @@
 
       .input-fields-2 {
         display: flex;
-        justify-content: space-around;
+        justify-content: space-between;
         width: 800px;
         margin: 16px 0px 0px 0px;
       }
@@ -145,7 +145,9 @@
       >
         <div class="input-fields">
           <div class="input-x">
-            <strong>Banca inicial:</strong>
+            <strong
+              >Banca inicial: US$<span id="initialBankDisplay"></span
+            ></strong>
             <input type="number" id="bankInput" value="15" />
           </div>
           <div class="input-x">
@@ -166,6 +168,10 @@
             <strong>Meta:</strong>
             <input type="number" id="targetInput" value="200000.00" />
           </div>
+          <div class="input-x">
+            <strong>Valor da margem de 0.01 lote</strong>
+            <input type="number" id="marginInput" value="13.12" />
+          </div>
         </div>
       </div>
       <div style="width: 100%; display: flex; justify-content: center">
@@ -182,17 +188,12 @@
               <strong>Banca Final:</strong> <span id="finalBankValue"></span>
             </p>
             <p>
-              <strong>Banca Inicial:</strong> US$
-              <span id="initialBankDisplay">15.00</span>
-            </p>
-            <p>
               <strong>% de Lucro Diário:</strong>
               <span id="dailyProfitPercentage"></span>%
             </p>
           </div>
           <div>
             <p><strong>Valor Máximo do Lote:</strong> 200.00</p>
-            <p><strong>Valor de cada Tick:</strong> US$ 0.001</p>
             <p>
               <strong>Meta batida com:</strong>
               <span id="targetAchievedDay"></span> dias de operação.
@@ -238,13 +239,16 @@
         );
         document.querySelector("#initialBankDisplay").textContent =
           initialBank.toFixed(2);
+        const marginValue = parseFloat(
+          document.querySelector("#marginInput").value
+        );
 
         let bank = initialBank;
         const maxLotValue = 200.0;
         const tickValue = 0.1;
-        const lotCost = 13.12;
+        // const lotCost = 13.12;
 
-        let lotValue = Math.floor(bank / lotCost) * 0.01;
+        let lotValue = Math.floor(bank / marginValue) * 0.01;
         if (lotValue > maxLotValue) {
           lotValue = maxLotValue;
         }
@@ -273,7 +277,7 @@
             if (lotValue < maxLotValue) {
               lotValue = Math.min(
                 maxLotValue,
-                Math.floor(bank / lotCost) * 0.01
+                Math.floor(bank / marginValue) * 0.01
               );
             }
           }
@@ -330,6 +334,9 @@
         .addEventListener("input", generateProjection);
       document
         .querySelector("#targetInput")
+        .addEventListener("input", generateProjection);
+      document
+        .querySelector("#marginInput")
         .addEventListener("input", generateProjection);
 
       generateProjection();
