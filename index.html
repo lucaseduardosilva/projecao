@@ -16,6 +16,7 @@
         justify-content: center;
         align-items: center;
         flex-direction: column;
+        padding: 0 10px;
       }
 
       h2 {
@@ -36,28 +37,19 @@
         box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
       }
 
-      .input-fields {
-        display: flex;
-        justify-content: space-between;
-        width: 800px;
-      }
-
+      .input-fields,
       .input-fields-2 {
         display: flex;
         justify-content: space-between;
-        width: 800px;
-        margin: 16px 0px 0px 0px;
+        width: 100%;
+        max-width: 800px;
       }
 
       .input-x {
         display: flex;
         flex-direction: column;
-      }
-
-      #informativos p {
-        margin: 0;
-        font-size: 1rem;
-        color: #555;
+        width: 100%;
+        margin: 8px 0;
       }
 
       #informativos input {
@@ -65,7 +57,27 @@
         font-size: 1rem;
         border-radius: 6px;
         border: 1px solid #ccc;
+        width: 100%;
         max-width: 200px;
+      }
+
+      @media (max-width: 768px) {
+        .input-fields,
+        .input-fields-2 {
+          flex-direction: column;
+          width: 100%;
+          gap: 10px;
+        }
+
+        #informativos {
+          width: 100%;
+        }
+      }
+
+      #informativos p {
+        margin: 0;
+        font-size: 1rem;
+        color: #555;
       }
 
       #informativos input:focus {
