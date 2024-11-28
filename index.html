@@ -307,7 +307,7 @@
             targetAchievedDay = day;
           }
 
-          row.innerHTML = 
+          row.innerHTML = `
             <td>${day}</td>
             <td>${currentMonth}</td>
             <td>${(bank - dailyProfit).toFixed(2)}</td>
@@ -317,7 +317,7 @@
             <td>${lotValue.toFixed(2)}</td>
             <td>${operationsPerDay}</td>
             <td>${ticksPerOperation}</td>
-          ;
+          `;
 
           tableBody.appendChild(row);
         }
