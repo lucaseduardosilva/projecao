@@ -25,8 +25,7 @@
         margin-bottom: 20px;
       }
 
-      #informativos,
-      #informativos2 {
+      #informativos {
         display: flex;
         flex-direction: column;
         gap: 20px;
@@ -39,9 +38,7 @@
       }
 
       .input-fields,
-      .input-fields-2,
-      .input-fields2,
-      .input-fields-22 {
+      .input-fields-2 {
         display: flex;
         justify-content: space-between;
         width: 100%;
@@ -55,8 +52,7 @@
         margin: 8px 0;
       }
 
-      #informativos input,
-      #informativos2 input {
+      #informativos input {
         padding: 10px;
         font-size: 1rem;
         border-radius: 6px;
@@ -67,29 +63,24 @@
 
       @media (max-width: 768px) {
         .input-fields,
-        .input-fields-2,
-        .input-fields2,
-        .input-fields-22 {
+        .input-fields-2 {
           flex-direction: column;
           width: 100%;
           gap: 10px;
         }
 
-        #informativos,
-        #informativos2 {
+        #informativos {
           width: 100%;
         }
       }
 
-      #informativos p,
-      #informativos2 p {
+      #informativos p {
         margin: 0;
         font-size: 1rem;
         color: #555;
       }
 
-      #informativos input:focus,
-      #informativos2 input:focus {
+      #informativos input:focus {
         border-color: #4e73df;
         outline: none;
       }
@@ -98,8 +89,7 @@
         margin-top: 15px;
       }
 
-      #projectionTableWrapper,
-      #projectionTableWrapper2 {
+      #projectionTableWrapper {
         width: 100%;
         max-width: 900px;
         height: 450px;
@@ -142,13 +132,11 @@
       }
 
       @media (max-width: 768px) {
-        #informativos,
-        #informativos2 {
+        #informativos {
           grid-template-columns: 1fr;
         }
 
-        #projectionTableWrapper,
-        #projectionTableWrapper2 {
+        #projectionTableWrapper {
           margin-top: 20px;
         }
       }
@@ -156,6 +144,7 @@
   </head>
   <body>
     <h2>Projeção de Banca</h2>
+
     <div id="informativos">
       <div
         style="
@@ -245,218 +234,122 @@
       </table>
     </div>
 
-    <h2>Projeção de Banca Mesa Proprietária</h2>
-    <div id="informativos2">
-      <div
-        style="
-          width: 100%;
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          flex-direction: column;
-        "
-      >
-        <div class="input-fields2">
-          <div class="input-x">
-            <strong
-              >Banca inicial: US$<span id="initialBankDisplay2"></span
-            ></strong>
-            <input type="number" id="bankInput2" value="6000" />
-          </div>
-          <div class="input-x">
-            <strong>Dias:</strong>
-            <input type="number" id="daysInput2" value="240" />
-          </div>
-          <div class="input-x">
-            <strong>Operações:</strong>
-            <input type="number" id="operationsInput2" value="5" />
-          </div>
-        </div>
-        <div class="input-fields-22">
-          <div class="input-x">
-            <strong>Ticks por operação:</strong>
-            <input type="number" id="ticksInput2" value="450" />
-          </div>
-          <div class="input-x">
-            <strong>Meta:</strong>
-            <input type="number" id="targetInput2" value="200000.00" />
-          </div>
-          <div class="input-x">
-            <strong>Valor da margem de 0.01 lote</strong>
-            <input type="number" id="marginInput2" value="13.12" />
-          </div>
-        </div>
-      </div>
-      <div style="width: 100%; display: flex; justify-content: center">
-        <div
-          style="
-            display: flex;
-            flex-direction: row;
-            width: 800px;
-            justify-content: space-between;
-          "
-        >
-          <div>
-            <p>
-              <strong>Banca Final:</strong> <span id="finalBankValue2"></span>
-            </p>
-            <p>
-              <strong>% de Lucro Diário:</strong>
-              <span id="dailyProfitPercentage2"></span>%
-            </p>
-          </div>
-          <div>
-            <p><strong>Valor Máximo do Lote:</strong> 200.00</p>
-            <p>
-              <strong>Meta batida com:</strong>
-              <span id="targetAchievedDay2"></span> dias de operação.
-            </p>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div id="projectionTableWrapper2" class="table-container">
-      <table id="projectionTable2">
-        <thead>
-          <tr>
-            <th>Dia</th>
-            <th>Mês</th>
-            <th>Banca Inicial</th>
-            <th>Lucro do Dia</th>
-            <th>Banca Total</th>
-            <th>Meta %</th>
-            <th>Lote</th>
-            <th>Operações</th>
-            <th>Ticks</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-    </div>
-
     <script>
       function generateProjection() {
-        const bankInput = document.querySelector("#bankInput").value;
-        const daysInput = document.querySelector("#daysInput").value;
-        const operationsInput = document.querySelector("#operationsInput").value;
-        const ticksInput = document.querySelector("#ticksInput").value;
-        const targetInput = document.querySelector("#targetInput").value;
-        const marginInput = document.querySelector("#marginInput").value;
-
-        const bankInput2 = document.querySelector("#bankInput2").value;
-        const daysInput2 = document.querySelector("#daysInput2").value;
-        const operationsInput2 =
-          document.querySelector("#operationsInput2").value;
-        const ticksInput2 = document.querySelector("#ticksInput2").value;
-        const targetInput2 = document.querySelector("#targetInput2").value;
-        const marginInput2 = document.querySelector("#marginInput2").value;
-
-        calculateProjection(
-          bankInput,
-          daysInput,
-          operationsInput,
-          ticksInput,
-          targetInput,
-          marginInput,
-          "initialBankDisplay",
-          "finalBankValue",
-          "dailyProfitPercentage",
-          "targetAchievedDay",
-          "projectionTable"
+        const initialBank = parseFloat(
+          document.querySelector("#bankInput").value
         );
-
-        calculateProjection(
-          bankInput2,
-          daysInput2,
-          operationsInput2,
-          ticksInput2,
-          targetInput2,
-          marginInput2,
-          "initialBankDisplay2",
-          "finalBankValue2",
-          "dailyProfitPercentage2",
-          "targetAchievedDay2",
-          "projectionTable2"
+        const days = parseInt(document.querySelector("#daysInput").value);
+        const operationsPerDay = parseInt(
+          document.querySelector("#operationsInput").value
         );
-      }
-
-      function calculateProjection(
-        bankInput,
-        daysInput,
-        operationsInput,
-        ticksInput,
-        targetInput,
-        marginInput,
-        initialBankDisplayId,
-        finalBankValueId,
-        dailyProfitPercentageId,
-        targetAchievedDayId,
-        projectionTableId
-      ) {
-        const initialBank = parseFloat(bankInput);
-        const days = parseInt(daysInput);
-        const operationsPerDay = parseInt(operationsInput);
-        const ticksPerOperation = parseInt(ticksInput);
-        const targetValue = parseFloat(targetInput);
-        const marginPerLot = parseFloat(marginInput);
-
-        const dailyProfit = operationsPerDay * ticksPerOperation * 0.01;
-        const dailyProfitPercentage = (dailyProfit / initialBank) * 100;
-
-        document.querySelector(`#${initialBankDisplayId}`).textContent =
+        const targetValue = parseFloat(
+          document.querySelector("#targetInput").value
+        );
+        const ticksPerOperation = parseInt(
+          document.querySelector("#ticksInput").value
+        );
+        document.querySelector("#initialBankDisplay").textContent =
           initialBank.toFixed(2);
-        document.querySelector(`#${dailyProfitPercentageId}`).textContent =
-          dailyProfitPercentage.toFixed(2);
-
-        const tableBody = document.querySelector(`#${projectionTableId} tbody`);
-        tableBody.innerHTML = "";
+        const marginValue = parseFloat(
+          document.querySelector("#marginInput").value
+        );
 
         let bank = initialBank;
+        const maxLotValue = 200.0;
+        const tickValue = 0.1;
+        // const lotCost = 13.12;
+
+        let lotValue = Math.floor(bank / marginValue) * 0.01;
+        if (lotValue > maxLotValue) {
+          lotValue = maxLotValue;
+        }
+
+        let dailyPercentage =
+          ((operationsPerDay * ticksPerOperation * tickValue * lotValue) /
+            bank) *
+          100;
+        document.querySelector("#dailyProfitPercentage").textContent =
+          dailyPercentage.toFixed(2);
+
+        let currentMonth = 1;
+        const tableBody = document.querySelector("#projectionTable tbody");
+
+        tableBody.innerHTML = "";
+
+        let greenRowAdded = false;
         let targetAchievedDay = null;
-        let currentMonth = 0;
 
         for (let day = 1; day <= days; day++) {
-          if (day % 20 === 1) {
-            currentMonth++;
+          if (day % 20 === 1 && day !== 1) {
+            currentMonth += 1;
           }
+
+          if (day % 10 === 1 && day !== 1) {
+            if (lotValue < maxLotValue) {
+              lotValue = Math.min(
+                maxLotValue,
+                Math.floor(bank / marginValue) * 0.01
+              );
+            }
+          }
+
+          const dailyProfit =
+            operationsPerDay * ticksPerOperation * tickValue * lotValue;
 
           bank += dailyProfit;
 
           const row = document.createElement("tr");
-          if (bank >= targetValue) {
+
+          if (!greenRowAdded && bank >= targetValue) {
             row.classList.add("green-row");
-            if (!targetAchievedDay) {
-              targetAchievedDay = day;
-            }
+            greenRowAdded = true;
+            targetAchievedDay = day;
           }
 
-          const lotValue = Math.min(bank / marginPerLot, 200);
-
-          row.innerHTML = `
+          row.innerHTML = 
             <td>${day}</td>
             <td>${currentMonth}</td>
             <td>${(bank - dailyProfit).toFixed(2)}</td>
             <td>${dailyProfit.toFixed(2)}</td>
             <td>${bank.toFixed(2)}</td>
-            <td>${((bank / targetValue) * 100).toFixed(2)}</td>
+            <td>${dailyPercentage.toFixed(2)}</td>
             <td>${lotValue.toFixed(2)}</td>
             <td>${operationsPerDay}</td>
             <td>${ticksPerOperation}</td>
-          `;
+          ;
 
           tableBody.appendChild(row);
         }
 
-        document.querySelector(`#${finalBankValueId}`).textContent =
-          bank.toFixed(2);
-        document.querySelector(`#${targetAchievedDayId}`).textContent =
-          targetAchievedDay ?? "não alcançada";
+        const formattedBankValue = new Intl.NumberFormat("en-US", {
+          style: "currency",
+          currency: "USD",
+        }).format(bank);
+        document.querySelector("#finalBankValue").textContent =
+          formattedBankValue;
+        document.querySelector("#targetAchievedDay").textContent =
+          targetAchievedDay;
       }
 
-      document.querySelectorAll("input").forEach((input) => {
-        input.addEventListener("input", generateProjection);
-      });
+      document
+        .querySelector("#bankInput")
+        .addEventListener("input", generateProjection);
+      document
+        .querySelector("#daysInput")
+        .addEventListener("input", generateProjection);
+      document
+        .querySelector("#operationsInput")
+        .addEventListener("input", generateProjection);
+      document
+        .querySelector("#ticksInput")
+        .addEventListener("input", generateProjection);
+      document
+        .querySelector("#targetInput")
+        .addEventListener("input", generateProjection);
+      document
+        .querySelector("#marginInput")
+        .addEventListener("input", generateProjection);
 
       generateProjection();
     </script>
