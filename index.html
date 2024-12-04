@@ -8,6 +8,8 @@
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap"
       rel="stylesheet"
     />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.3.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.13/jspdf.plugin.autotable.min.js"></script>
     <style>
       body {
         font-family: "Inter", sans-serif;
@@ -55,7 +57,7 @@
       #informativos input {
         padding: 10px;
         font-size: 1rem;
-        border-radius: 6px;
+        border-radius: 8px;
         border: 1px solid #ccc;
         width: 100%;
         max-width: 200px;
@@ -94,10 +96,38 @@
         max-width: 900px;
         height: 450px;
         overflow: auto;
+        background-color: #fff;
+        margin-top: 16px;
+      }
+
+      #card-table {
+        width: 100%;
+        max-width: 900px;
+        height: 450px;
+        overflow: hidden;
         border-radius: 8px;
         background-color: #fff;
         box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         padding: 20px;
+      }
+      #card-table-button-container {
+        width: 100%;
+        display: flex;
+        justify-content: flex-end;
+      }
+
+      #card-table-button {
+        cursor: pointer;
+        padding: 8px;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        background-color: #494c4e;
+        color: #fff;
+        transition: background-color 0.3s ease;
+      }
+
+      #card-table-button:hover {
+        background-color: #717171;
       }
 
       table {
@@ -215,26 +245,70 @@
       </div>
     </div>
 
-    <div id="projectionTableWrapper" class="table-container">
-      <table id="projectionTable">
-        <thead>
-          <tr>
-            <th>Dia</th>
-            <th>Mês</th>
-            <th>Banca Inicial</th>
-            <th>Lucro do Dia</th>
-            <th>Banca Total</th>
-            <th>Meta %</th>
-            <th>Lote</th>
-            <th>Operações</th>
-            <th>Ticks</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
+    <div id="card-table" class="table-container">
+      <div id="card-table-button-container">
+        <button id="card-table-button" onclick="exportToPDF()">
+          Exportar para PDF
+        </button>
+      </div>
+      <div id="projectionTableWrapper">
+        <table id="projectionTable">
+          <thead>
+            <tr>
+              <th>Dia</th>
+              <th>Mês</th>
+              <th>Banca Inicial</th>
+              <th>Lucro do Dia</th>
+              <th>Banca Total</th>
+              <th>Meta %</th>
+              <th>Lote</th>
+              <th>Operações</th>
+              <th>Ticks</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
     </div>
 
     <script>
+      function exportToPDF() {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+
+        const initialBank = parseFloat(
+          document.querySelector("#bankInput").value
+        );
+        const days = parseInt(document.querySelector("#daysInput").value);
+        const operationsPerDay = parseInt(
+          document.querySelector("#operationsInput").value
+        );
+        const targetValue = parseFloat(
+          document.querySelector("#targetInput").value
+        );
+        const ticksPerOperation = parseInt(
+          document.querySelector("#ticksInput").value
+        );
+        const marginValue = parseFloat(
+          document.querySelector("#marginInput").value
+        );
+        doc.setFontSize(10);
+        doc.text(`Banca inicial: ${initialBank.toFixed(2)}`, 10, 10);
+        doc.text(`Dias: ${days}`, 10, 20);
+        doc.text(`Operações por dia: ${operationsPerDay}`, 10, 30);
+        doc.text(`Ticks por operação: ${ticksPerOperation}`, 10, 40);
+        doc.text(`Meta: ${targetValue.toFixed(2)}`, 10, 50);
+        doc.text(`Valor de 0.01 lote: ${marginValue.toFixed(2)}`, 10, 60);
+
+        doc.autoTable({
+          html: "#projectionTable",
+          startY: 70,
+          styles: { fontSize: 8 },
+        });
+
+        doc.save("projection.pdf");
+      }
+
       function generateProjection() {
         const initialBank = parseFloat(
           document.querySelector("#bankInput").value
