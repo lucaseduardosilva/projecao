@@ -194,7 +194,7 @@
           </div>
           <div class="input-x">
             <strong>Dias:</strong>
-            <input type="number" id="daysInput" value="240" />
+            <input type="number" id="daysInput" value="365" />
           </div>
           <div class="input-x">
             <strong>Operações:</strong>
@@ -256,7 +256,7 @@
           <thead>
             <tr>
               <th>Dia</th>
-              <th>Mês</th>
+<!--               <th>Mês</th> -->
               <th>Banca Inicial</th>
               <th>Lucro do Dia</th>
               <th>Banca Total</th>
@@ -380,10 +380,20 @@
             greenRowAdded = true;
             targetAchievedDay = day;
           }
-
+          // row.innerHTML = `
+          //   <td>${day}</td>
+          //   <td>${currentMonth}</td>
+          //   <td>${(bank - dailyProfit).toFixed(2)}</td>
+          //   <td>${dailyProfit.toFixed(2)}</td>
+          //   <td>${bank.toFixed(2)}</td>
+          //   <td>${dailyPercentage.toFixed(2)}</td>
+          //   <td>${lotValue.toFixed(2)}</td>
+          //   <td>${operationsPerDay}</td>
+          //   <td>${ticksPerOperation}</td>
+          // `;
+          
           row.innerHTML = `
             <td>${day}</td>
-            <td>${currentMonth}</td>
             <td>${(bank - dailyProfit).toFixed(2)}</td>
             <td>${dailyProfit.toFixed(2)}</td>
             <td>${bank.toFixed(2)}</td>
