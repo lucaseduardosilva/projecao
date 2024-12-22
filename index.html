@@ -94,7 +94,7 @@
       #projectionTableWrapper {
         width: 100%;
         max-width: 900px;
-        height: 450px;
+        height: 496px;
         overflow: auto;
         background-color: #fff;
         margin-top: 16px;
@@ -103,7 +103,7 @@
       #card-table {
         width: 100%;
         max-width: 900px;
-        height: 500px;
+        height: 550px;
         overflow: hidden;
         border-radius: 8px;
         background-color: #fff;
@@ -256,7 +256,7 @@
           <thead>
             <tr>
               <th>Dia</th>
-<!--               <th>Mês</th> -->
+              <!--               <th>Mês</th> -->
               <th>Banca Inicial</th>
               <th>Lucro do Dia</th>
               <th>Banca Total</th>
@@ -391,7 +391,7 @@
           //   <td>${operationsPerDay}</td>
           //   <td>${ticksPerOperation}</td>
           // `;
-          
+
           row.innerHTML = `
             <td>${day}</td>
             <td>${(bank - dailyProfit).toFixed(2)}</td>
