@@ -359,7 +359,9 @@
           initialBank.toFixed(2);
 
         const tickValue = moeda === "XAUUSD" ? 0.1 : 0.01;
-        const marginValue = moeda === "XAUUSD" ? 13.12 : 2.45;
+        const marginValue = moeda === "XAUUSD" 
+          ? parseFloat(document.querySelector("#marginInput").value) || 13.12
+          : parseFloat(document.querySelector("#marginInput").value) || 2.45;
 
         if (moeda === "XAUUSD") {
           marginValue.value = "13.12";
