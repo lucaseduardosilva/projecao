@@ -292,6 +292,7 @@
       const targetInputElement = document.getElementById("targetInput");
       const marginInput = document.querySelector("#marginInput");
       const ticksInput = document.querySelector("#ticksInput");
+      const lotesInput = document.querySelector("#lotes");
       const moedaSelect = document.querySelector("#moeda");
       let averageDolar = 0;
       
@@ -473,9 +474,11 @@
         if (moedaSelect.value === "XAUUSD") {
           marginInput.value = 13.12;
           ticksInput.value = 500;
+          lotesInput.value = 200;
         } else if (moedaSelect.value === "BTCUSD") {
           marginInput.value = 2.45;
           ticksInput.value = 5000;
+          lotesInput.value = 20;
         }
         generateProjection();
       });
