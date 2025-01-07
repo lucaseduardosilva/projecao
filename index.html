@@ -60,7 +60,16 @@
         border-radius: 8px;
         border: 1px solid #ccc;
         width: 100%;
-        max-width: 200px;
+        max-width: 134px;
+      }
+
+      #informativos select {
+        padding: 10px;
+        font-size: 1rem;
+        border-radius: 8px;
+        border: 1px solid #ccc;
+        width: 100%;
+        max-width: 156px;
       }
 
       @media (max-width: 768px) {
@@ -82,7 +91,7 @@
         color: #555;
       }
 
-      #informativos input:focus {
+      #informativos input:focus, select:focus {
         border-color: #4e73df;
         outline: none;
       }
@@ -200,6 +209,13 @@
             <strong>Operações:</strong>
             <input type="number" id="operationsInput" value="3" />
           </div>
+          <div class="input-x">
+            <strong>Moeda:</strong>
+            <select name="moeda" id="moeda">
+              <option value="XAUUSD">XAUUSD</option>
+              <option value="BTCUSD">BTCUSD</option>
+            </select>
+          </div>
         </div>
         <div class="input-fields-2">
           <div class="input-x">
@@ -211,8 +227,12 @@
             <input type="number" id="targetInput" value="200000.00" />
           </div>
           <div class="input-x">
-            <strong>Valor da margem de 0.01 lote</strong>
+            <strong>Margem de 0.01 lote</strong>
             <input type="number" id="marginInput" value="13.12" />
+          </div>
+          <div class="input-x">
+            <strong>Lotes</strong>
+            <input type="number" id="lotes" value="200" />
           </div>
         </div>
       </div>
@@ -221,24 +241,21 @@
           style="
             display: flex;
             flex-direction: row;
-            width: 800px;
-            justify-content: space-between;
+            width: 1200px;
+            justify-content: center;
           "
         >
           <div>
-            <p>
+            <p style="width: 100%; display: flex; justify-content: space-between;">
               <strong>Banca Final:</strong> <span id="finalBankValue"></span>
             </p>
-            <p>
+            <p style="width: 100%; display: flex; justify-content: space-between;">
               <strong>% de Lucro Diário:</strong>
-              <span id="dailyProfitPercentage"></span>%
+              <span id="dailyProfitPercentage"></span>
             </p>
-          </div>
-          <div>
-            <p><strong>Valor Máximo do Lote:</strong> 200.00</p>
-            <p>
+            <p style="width: 100%; display: flex; justify-content: space-between;">
               <strong>Meta batida com:</strong>
-              <span id="targetAchievedDay"></span> dias de operação.
+              <span id="targetAchievedDay"></span>
             </p>
           </div>
         </div>
@@ -272,10 +289,19 @@
     </div>
 
     <script>
+      const targetInputElement = document.getElementById("targetInput");
+      const marginInput = document.querySelector("#marginInput");
+      const ticksInput = document.querySelector("#ticksInput");
+      const moedaSelect = document.querySelector("#moeda");
+      let averageDolar = 0;
+      
       function exportToPDF() {
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF();
-
+        const moeda = document.querySelector("#moeda").value;
+        const lotes = parseFloat(
+          document.querySelector("#lotes").value
+        );
         const initialBank = parseFloat(
           document.querySelector("#bankInput").value
         );
@@ -299,10 +325,11 @@
         doc.text(`Ticks por operação: ${ticksPerOperation}`, 10, 40);
         doc.text(`Meta: ${targetValue.toFixed(2)}`, 10, 50);
         doc.text(`Valor de 0.01 lote: ${marginValue.toFixed(2)}`, 10, 60);
+        doc.text(`Moeda: ${moeda}`, 10, 70);
 
         doc.autoTable({
           html: "#projectionTable",
-          startY: 70,
+          startY: 80,
           styles: { fontSize: 8 },
         });
 
@@ -310,6 +337,10 @@
       }
 
       function generateProjection() {
+        const moeda = document.querySelector("#moeda").value;
+        const lotes = parseFloat(
+          document.querySelector("#lotes").value
+        );
         const initialBank = parseFloat(
           document.querySelector("#bankInput").value
         );
@@ -325,14 +356,17 @@
         );
         document.querySelector("#initialBankDisplay").textContent =
           initialBank.toFixed(2);
-        const marginValue = parseFloat(
-          document.querySelector("#marginInput").value
-        );
 
+        const tickValue = moeda === "XAUUSD" ? 0.1 : 0.01;
+        const marginValue = moeda === "XAUUSD" ? 13.12 : 2.45;
+
+        if (moeda === "XAUUSD") {
+          marginValue.value = "13.12";
+        } else {
+          marginValue.value = "2.45";
+        }
         let bank = initialBank;
-        const maxLotValue = 200.0;
-        const tickValue = 0.1;
-        // const lotCost = 13.12;
+        const maxLotValue = lotes;
 
         let lotValue = Math.floor(bank / marginValue) * 0.01;
         if (lotValue > maxLotValue) {
@@ -343,8 +377,9 @@
           ((operationsPerDay * ticksPerOperation * tickValue * lotValue) /
             bank) *
           100;
+        let dailyPercentage2 = dailyPercentage.toFixed(2);
         document.querySelector("#dailyProfitPercentage").textContent =
-          dailyPercentage.toFixed(2);
+          dailyPercentage2 + "%";
 
         let currentMonth = 1;
         const tableBody = document.querySelector("#projectionTable tbody");
@@ -413,9 +448,42 @@
         document.querySelector("#finalBankValue").textContent =
           formattedBankValue;
         document.querySelector("#targetAchievedDay").textContent =
-          targetAchievedDay;
+          targetAchievedDay + " dias de operação.";
       }
 
+      async function fetchDollarRate() {
+        try {
+          const response = await fetch(
+            "https://economia.awesomeapi.com.br/json/last/USD-BRL"
+          );
+          const data = await response.json();
+          console.log('lucx ', data);
+          const high = parseFloat(data.USDBRL.high);
+          const low = parseFloat(data.USDBRL.low);
+          const average = ((high + low) / 2).toFixed(2);
+          averageDolar = 1000000 / average;
+          document.querySelector("#targetInput").value = averageDolar.toFixed(2);
+          updateStats();
+        } catch (error) {
+          console.error("Erro ao buscar a cotação do dólar:", error);
+        }
+      }   
+
+      moedaSelect.addEventListener("change", () => {
+        if (moedaSelect.value === "XAUUSD") {
+          marginInput.value = 13.12;
+          ticksInput.value = 500;
+        } else if (moedaSelect.value === "BTCUSD") {
+          marginInput.value = 2.45;
+          ticksInput.value = 5000;
+        }
+        generateProjection();
+      });
+
+      document.querySelector("#moeda").addEventListener("change", generateProjection);
+      document
+        .querySelector("#lotes")
+        .addEventListener("input", generateProjection);
       document
         .querySelector("#bankInput")
         .addEventListener("input", generateProjection);
@@ -436,6 +504,7 @@
         .addEventListener("input", generateProjection);
 
       generateProjection();
+      fetchDollarRate();
     </script>
   </body>
 </html>
