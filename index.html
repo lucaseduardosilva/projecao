@@ -229,13 +229,7 @@
           </div>
           <div class="input-x">
             <strong>Margem de 0.01 lote</strong>
-            <input
-              type="number"
-              id="marginInput"
-              value="1.49"
-              placeholder="Carregando..."
-              readonly
-            />
+            <input type="number" id="marginInput" value="1.49" />
           </div>
           <div class="input-x">
             <strong>Lotes</strong>
@@ -319,7 +313,7 @@
       const lotesInput = document.querySelector("#lotes");
       const moedaSelect = document.querySelector("#moeda");
       let averageDolar = 0;
-      let currentMarginValue = 0;
+      let defaultMarginValue = 1.49;
 
       function exportToPDF() {
         const { jsPDF } = window.jspdf;
@@ -403,25 +397,20 @@
           );
 
           if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+            console.error(`HTTP error! status: ${response.status}`);
+            return null;
           }
 
           const data = await response.json();
 
           if (data && data.data && data.data.calculate) {
-            const margin = data.data.calculate.margin;
-            currentMarginValue = margin;
-            marginInput.value = margin.toFixed(2); // Display with 2 decimal places
-            marginInput.dataset.fullValue = margin; // Store full value in dataset
-            return margin;
+            return data.data.calculate.margin;
           } else {
             console.error("Unexpected API response:", data);
-            marginInput.value = "Erro ao carregar";
             return null;
           }
         } catch (error) {
           console.error("Error fetching margin:", error);
-          marginInput.value = "Erro ao carregar";
           return null;
         }
       }
@@ -449,11 +438,7 @@
 
         const tickValue = moeda === "XAUUSD" ? 0.1 : 0.01;
 
-        const marginValue = currentMarginValue;
-
-        if (!marginValue) {
-          return; // Don't proceed if margin value is not loaded
-        }
+        const marginValue = parseFloat(marginInput.value);
 
         let bank = initialBank;
         const maxLotValue = lotes;
@@ -536,7 +521,6 @@
             "https://economia.awesomeapi.com.br/json/last/USD-BRL"
           );
           const data = await response.json();
-          console.log("lucx ", data);
           const high = parseFloat(data.USDBRL.high);
           const low = parseFloat(data.USDBRL.low);
           const average = ((high + low) / 2).toFixed(2);
@@ -544,7 +528,6 @@
           document.querySelector("#targetInput").value = averageDolar.toFixed(
             2
           );
-          updateStats();
         } catch (error) {
           console.error("Erro ao buscar a cotação do dólar:", error);
         }
@@ -560,10 +543,12 @@
           lotesInput.value = 20;
         }
 
-        await fetchMargin(selectedMoeda);
+        const margin = await fetchMargin(selectedMoeda);
+        marginInput.value = margin !== null ? margin.toFixed(2) : defaultMarginValue;
         generateProjection();
       });
 
+      marginInput.addEventListener("input", generateProjection);
       document
         .querySelector("#lotes")
         .addEventListener("input", generateProjection);
@@ -583,10 +568,10 @@
         .querySelector("#targetInput")
         .addEventListener("input", generateProjection);
 
-      // Initial setup
       async function initialize() {
         await fetchDollarRate();
-        await fetchMargin(moedaSelect.value);
+        const margin = await fetchMargin(moedaSelect.value);
+        marginInput.value = margin !== null ? margin.toFixed(2) : defaultMarginValue;
         generateProjection();
       }
 
