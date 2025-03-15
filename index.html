@@ -229,7 +229,7 @@
           </div>
           <div class="input-x">
             <strong>Margem de 0.01 lote</strong>
-            <input type="number" id="marginInput" value="1.49" />
+            <input type="number" id="marginInput" value="" />
           </div>
           <div class="input-x">
             <strong>Lotes</strong>
@@ -397,8 +397,8 @@
           );
 
           if (!response.ok) {
-            console.error(`HTTP error! status: ${response.status}`);
-            return null;
+              console.error(`HTTP error! status: ${response.status}`);
+              return null;
           }
 
           const data = await response.json();
@@ -544,7 +544,7 @@
         }
 
         const margin = await fetchMargin(selectedMoeda);
-        marginInput.value = margin !== null ? margin.toFixed(2) : defaultMarginValue;
+        marginInput.value = margin !== null ? String(margin) : String(defaultMarginValue);
         generateProjection();
       });
 
@@ -571,7 +571,7 @@
       async function initialize() {
         await fetchDollarRate();
         const margin = await fetchMargin(moedaSelect.value);
-        marginInput.value = margin !== null ? margin.toFixed(2) : defaultMarginValue;
+        marginInput.value = margin !== null ? String(margin) : String(defaultMarginValue);
         generateProjection();
       }
 
