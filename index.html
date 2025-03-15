@@ -346,6 +346,9 @@
         const targetValue = parseFloat(
           document.querySelector("#targetInput").value
         );
+        const finalBank = 
+          document.querySelector("#finalBankValue").textContent
+        ;
         const ticksPerOperation = parseInt(
           document.querySelector("#ticksInput").value
         );
@@ -354,18 +357,19 @@
         );
         const marginValue = parseFloat(marginInput.value);
         doc.setFontSize(10);
-        doc.text(`Banca inicial: ${initialBank.toFixed(2)}`, 10, 10);
-        doc.text(`Dias: ${days}`, 10, 20);
-        doc.text(`Operações por dia: ${operationsPerDay}`, 10, 30);
-        doc.text(`Ticks por operação: ${ticksPerOperation}`, 10, 40);
-        doc.text(`Meta: ${targetValue.toFixed(2)} | 1 milhão de reais`, 10, 50);
-        doc.text(`Valor de 0.01 lote: ${marginValue.toFixed(2)}`, 10, 60);
-        doc.text(`Moeda: ${moeda}`, 10, 70);
-        doc.text(`Meta atingida em: ${targetDay} dias de operação`, 10, 80);
+        doc.text(`Banca inicial $${initialBank.toFixed(2)}`, 10, 10);
+        doc.text(`Dias ${days}`, 10, 20);
+        doc.text(`Operações por dia ${operationsPerDay}`, 10, 30);
+        doc.text(`Ticks por operação ${ticksPerOperation}`, 10, 40);
+        doc.text(`Meta $${targetValue.toFixed(2)} | 1 milhão de reais`, 10, 50);
+        doc.text(`Valor de 0.01 lote $${marginValue.toFixed(2)}`, 10, 60);
+        doc.text(`Moeda ${moeda}`, 10, 70);
+        doc.text(`Meta atingida em ${targetDay} dias de operação`, 10, 80);
+        doc.text(`Banca final ${finalBank}`, 10, 90);
 
         doc.autoTable({
           html: "#projectionTable",
-          startY: 90,
+          startY: 100,
           styles: { fontSize: 8 },
         });
 
