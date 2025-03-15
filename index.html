@@ -91,7 +91,8 @@
         color: #555;
       }
 
-      #informativos input:focus, select:focus {
+      #informativos input:focus,
+      select:focus {
         border-color: #4e73df;
         outline: none;
       }
@@ -228,7 +229,13 @@
           </div>
           <div class="input-x">
             <strong>Margem de 0.01 lote</strong>
-            <input type="number" id="marginInput" value="1.49" />
+            <input
+              type="number"
+              id="marginInput"
+              value="1.49"
+              placeholder="Carregando..."
+              readonly
+            />
           </div>
           <div class="input-x">
             <strong>Lotes</strong>
@@ -246,14 +253,32 @@
           "
         >
           <div>
-            <p style="width: 100%; display: flex; justify-content: space-between;">
+            <p
+              style="
+                width: 100%;
+                display: flex;
+                justify-content: space-between;
+              "
+            >
               <strong>Banca Final:</strong> <span id="finalBankValue"></span>
             </p>
-            <p style="width: 100%; display: flex; justify-content: space-between;">
+            <p
+              style="
+                width: 100%;
+                display: flex;
+                justify-content: space-between;
+              "
+            >
               <strong>% de Lucro Diário:</strong>
               <span id="dailyProfitPercentage"></span>
             </p>
-            <p style="width: 100%; display: flex; justify-content: space-between;">
+            <p
+              style="
+                width: 100%;
+                display: flex;
+                justify-content: space-between;
+              "
+            >
               <strong>Meta batida com:</strong>
               <span id="targetAchievedDay"></span>
             </p>
@@ -273,7 +298,6 @@
           <thead>
             <tr>
               <th>Dia</th>
-              <!--               <th>Mês</th> -->
               <th>Banca Inicial</th>
               <th>Lucro do Dia</th>
               <th>Banca Total</th>
@@ -295,7 +319,8 @@
       const lotesInput = document.querySelector("#lotes");
       const moedaSelect = document.querySelector("#moeda");
       let averageDolar = 0;
-      
+      let currentMarginValue = 0;
+
       function exportToPDF() {
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF();
@@ -316,9 +341,7 @@
         const ticksPerOperation = parseInt(
           document.querySelector("#ticksInput").value
         );
-        const marginValue = parseFloat(
-          document.querySelector("#marginInput").value
-        );
+        const marginValue = parseFloat(marginInput.value);
         doc.setFontSize(10);
         doc.text(`Banca inicial: ${initialBank.toFixed(2)}`, 10, 10);
         doc.text(`Dias: ${days}`, 10, 20);
@@ -335,6 +358,72 @@
         });
 
         doc.save("projection.pdf");
+      }
+
+      async function fetchMargin(instrument) {
+        try {
+          const response = await fetch(
+            "https://www.exness.com/pwapi/",
+            {
+              method: "POST",
+              headers: {
+                accept: "*/*",
+                "accept-language": "pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7",
+                baggage:
+                  "sentry-environment=production,sentry-release=f47772dde3e5b9cb692f019ee3631e33fa7a5471,sentry-public_key=5e0bf93d66884099adcb6f3315fbb49a,sentry-trace_id=1481e3c64b80458e971e689d8ba894bd",
+                "content-type": "application/json",
+                "sec-ch-ua":
+                  '"Chromium";v="134", "Not:A-Brand";v="24", "Google Chrome";v="134"',
+                "sec-ch-ua-mobile": "?0",
+                "sec-ch-ua-platform": '"macOS"',
+                "sec-fetch-dest": "empty",
+                "sec-fetch-mode": "cors",
+                "sec-fetch-site": "same-origin",
+                "sentry-trace": "1481e3c64b80458e971e689d8ba894bd-b73156e174f3b681",
+                "user-agent":
+                  "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36",
+                origin: "https://www.exness.com",
+                referer: "https://www.exness.com/pt/calculator/",
+              },
+              body: JSON.stringify({
+                operationName: "Calculate",
+                variables: {
+                  input: {
+                    account_type: "mt5_classic_real_vc",
+                    instrument: instrument,
+                    currency: "USD",
+                    leverage: 2000,
+                    lot: 0.01,
+                  },
+                },
+                query:
+                  "mutation Calculate($input: CalculationInput!) {  calculate(input: $input) {    currency    margin    pip_value    swap_long    swap_short    spread    commission    __typename  }}",
+              }),
+            }
+          );
+
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+
+          const data = await response.json();
+
+          if (data && data.data && data.data.calculate) {
+            const margin = data.data.calculate.margin;
+            currentMarginValue = margin;
+            marginInput.value = margin.toFixed(2); // Display with 2 decimal places
+            marginInput.dataset.fullValue = margin; // Store full value in dataset
+            return margin;
+          } else {
+            console.error("Unexpected API response:", data);
+            marginInput.value = "Erro ao carregar";
+            return null;
+          }
+        } catch (error) {
+          console.error("Error fetching margin:", error);
+          marginInput.value = "Erro ao carregar";
+          return null;
+        }
       }
 
       function generateProjection() {
@@ -359,15 +448,13 @@
           initialBank.toFixed(2);
 
         const tickValue = moeda === "XAUUSD" ? 0.1 : 0.01;
-        const marginValue = moeda === "XAUUSD" 
-          ? parseFloat(document.querySelector("#marginInput").value) || 13.12
-          : parseFloat(document.querySelector("#marginInput").value) || 2.45;
 
-        if (moeda === "XAUUSD") {
-          marginValue.value = "13.12";
-        } else {
-          marginValue.value = "2.45";
+        const marginValue = currentMarginValue;
+
+        if (!marginValue) {
+          return; // Don't proceed if margin value is not loaded
         }
+
         let bank = initialBank;
         const maxLotValue = lotes;
 
@@ -418,17 +505,6 @@
             greenRowAdded = true;
             targetAchievedDay = day;
           }
-          // row.innerHTML = `
-          //   <td>${day}</td>
-          //   <td>${currentMonth}</td>
-          //   <td>${(bank - dailyProfit).toFixed(2)}</td>
-          //   <td>${dailyProfit.toFixed(2)}</td>
-          //   <td>${bank.toFixed(2)}</td>
-          //   <td>${dailyPercentage.toFixed(2)}</td>
-          //   <td>${lotValue.toFixed(2)}</td>
-          //   <td>${operationsPerDay}</td>
-          //   <td>${ticksPerOperation}</td>
-          // `;
 
           row.innerHTML = `
             <td>${day}</td>
@@ -460,32 +536,34 @@
             "https://economia.awesomeapi.com.br/json/last/USD-BRL"
           );
           const data = await response.json();
-          console.log('lucx ', data);
+          console.log("lucx ", data);
           const high = parseFloat(data.USDBRL.high);
           const low = parseFloat(data.USDBRL.low);
           const average = ((high + low) / 2).toFixed(2);
           averageDolar = 1000000 / average;
-          document.querySelector("#targetInput").value = averageDolar.toFixed(2);
+          document.querySelector("#targetInput").value = averageDolar.toFixed(
+            2
+          );
           updateStats();
         } catch (error) {
           console.error("Erro ao buscar a cotação do dólar:", error);
         }
-      }   
+      }
 
-      moedaSelect.addEventListener("change", () => {
-        if (moedaSelect.value === "XAUUSD") {
-          marginInput.value = 13.12;
+      moedaSelect.addEventListener("change", async () => {
+        const selectedMoeda = moedaSelect.value;
+        if (selectedMoeda === "XAUUSD") {
           ticksInput.value = 500;
           lotesInput.value = 200;
-        } else if (moedaSelect.value === "BTCUSD") {
-          marginInput.value = 2.45;
+        } else if (selectedMoeda === "BTCUSD") {
           ticksInput.value = 5000;
           lotesInput.value = 20;
         }
+
+        await fetchMargin(selectedMoeda);
         generateProjection();
       });
 
-      document.querySelector("#moeda").addEventListener("change", generateProjection);
       document
         .querySelector("#lotes")
         .addEventListener("input", generateProjection);
@@ -504,12 +582,15 @@
       document
         .querySelector("#targetInput")
         .addEventListener("input", generateProjection);
-      document
-        .querySelector("#marginInput")
-        .addEventListener("input", generateProjection);
 
-      generateProjection();
-      fetchDollarRate();
+      // Initial setup
+      async function initialize() {
+        await fetchDollarRate();
+        await fetchMargin(moedaSelect.value);
+        generateProjection();
+      }
+
+      initialize();
     </script>
   </body>
 </html>
