@@ -167,6 +167,10 @@
         font-weight: bold !important;
       }
 
+      tr.current-day-row {
+        background-color: #add8e6 !important;
+      }
+
       .table-container {
         overflow-x: auto;
       }
@@ -275,6 +279,16 @@
             >
               <strong>Meta batida com:</strong>
               <span id="targetAchievedDay"></span>
+            </p>
+            <p
+              style="
+                width: 100%;
+                display: flex;
+                justify-content: space-between;
+              "
+            >
+              <strong>Dias operados:</strong>
+              <span id="daysOperated"></span>
             </p>
           </div>
         </div>
@@ -397,8 +411,8 @@
           );
 
           if (!response.ok) {
-              console.error(`HTTP error! status: ${response.status}`);
-              return null;
+            console.error(`HTTP error! status: ${response.status}`);
+            return null;
           }
 
           const data = await response.json();
@@ -415,7 +429,7 @@
         }
       }
 
-      function generateProjection() {
+      async function generateProjection() {
         const moeda = document.querySelector("#moeda").value;
         const lotes = parseFloat(
           document.querySelector("#lotes").value
@@ -464,6 +478,24 @@
         let greenRowAdded = false;
         let targetAchievedDay = null;
 
+        const startDate = new Date("2025-03-10T00:00:00");
+        const today = new Date(usdToBrlCreateDate);
+        let businessDays = 0;
+        let currentDate = new Date(startDate);
+
+        while (currentDate <= today) {
+          const dayOfWeek = currentDate.getDay();
+          if (dayOfWeek !== 0 && dayOfWeek !== 6) {
+            businessDays++;
+          }
+          currentDate.setDate(currentDate.getDate() + 1);
+        }
+
+        document.querySelector("#daysOperated").textContent =
+          businessDays + " dias";
+
+        let currentDay = 1;
+
         for (let day = 1; day <= days; day++) {
           if (day % 20 === 1 && day !== 1) {
             currentMonth += 1;
@@ -489,6 +521,10 @@
             row.classList.add("green-row");
             greenRowAdded = true;
             targetAchievedDay = day;
+          }
+
+          if (day === businessDays && !greenRowAdded) {
+            row.classList.add("current-day-row");
           }
 
           row.innerHTML = `
@@ -521,6 +557,7 @@
             "https://economia.awesomeapi.com.br/json/last/USD-BRL"
           );
           const data = await response.json();
+          usdToBrlCreateDate = data.USDBRL.create_date;
           const high = parseFloat(data.USDBRL.high);
           const low = parseFloat(data.USDBRL.low);
           const average = ((high + low) / 2).toFixed(2);
@@ -544,7 +581,8 @@
         }
 
         const margin = await fetchMargin(selectedMoeda);
-        marginInput.value = margin !== null ? String(margin) : String(defaultMarginValue);
+        marginInput.value =
+          margin !== null ? String(margin) : String(defaultMarginValue);
         generateProjection();
       });
 
@@ -568,10 +606,13 @@
         .querySelector("#targetInput")
         .addEventListener("input", generateProjection);
 
+      let usdToBrlCreateDate;
+
       async function initialize() {
         await fetchDollarRate();
         const margin = await fetchMargin(moedaSelect.value);
-        marginInput.value = margin !== null ? String(margin) : String(defaultMarginValue);
+        marginInput.value =
+          margin !== null ? String(margin) : String(defaultMarginValue);
         generateProjection();
       }
 
