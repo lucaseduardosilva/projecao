@@ -184,6 +184,14 @@
           margin-top: 20px;
         }
       }
+
+      .passed-day-row {
+        background-color: #f0f0f0 !important;
+      }
+
+      .last-passed-day-row {
+        background-color: #b0e2ff !important;
+      }
     </style>
   </head>
   <body>
@@ -488,6 +496,8 @@
         let businessDays = 0;
         let currentDate = new Date(startDate);
         let dayCounter = 1;
+        let today = new Date();
+        let lastPassedDay = null;
 
         while (currentDate <= endDate && dayCounter <= days) {
           const dayOfWeek = currentDate.getDay();
@@ -504,7 +514,6 @@
               targetAchievedDay = dayCounter;
             }
 
-            const today = new Date(usdToBrlCreateDate);
             const formatDate = (date) => {
               const year = date.getFullYear();
               const month = String(date.getMonth() + 1).padStart(2, "0");
@@ -516,10 +525,20 @@
               row.classList.add("current-day-row");
             }
 
+            if (currentDate < today) {
+              row.classList.add("passed-day-row");
+              lastPassedDay = { row: row, day: dayCounter };
+            }
+
             const formattedDate = formatDate(currentDate);
 
+            let dayDisplay = dayCounter;
+            if (currentDate < today) {
+              dayDisplay = `✓ ${dayCounter}`;
+            }
+
             row.innerHTML = `
-              <td>${dayCounter}</td>
+              <td>${dayDisplay}</td>
               <td>${formattedDate}</td>
               <td>${(bank - dailyProfit).toFixed(2)}</td>
               <td>${dailyProfit.toFixed(2)}</td>
@@ -550,6 +569,13 @@
           }
         }
 
+        if (lastPassedDay) {
+          lastPassedDay.row.classList.remove("passed-day-row");
+          lastPassedDay.row.classList.add("last-passed-day-row");
+          lastPassedDay.row.querySelector("td:first-child").textContent =
+            lastPassedDay.day;
+        }
+
         const formattedBankValue = new Intl.NumberFormat("en-US", {
           style: "currency",
           currency: "USD",
@@ -557,7 +583,9 @@
         document.querySelector("#finalBankValue").textContent =
           formattedBankValue;
         document.querySelector("#targetAchievedDay").textContent =
-          targetAchievedDay ? targetAchievedDay + " dias de operação." : 'Meta não atingida.';
+          targetAchievedDay
+            ? targetAchievedDay + " dias de operação."
+            : "Meta não atingida.";
         document.querySelector("#daysOperated").textContent =
           businessDays + " dias";
       }
