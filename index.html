@@ -263,10 +263,10 @@
               style="width: 100%; display: flex; justify-content: space-between;"
             >
               <p>
-                <strong>Período:</strong>  
+                <strong>Período:</strong>
               </p>
               <p>10/03/2025 até 19/12/2025</p>
-          </div>
+            </div>
             <p
               style="
                 width: 100%;
@@ -506,6 +506,7 @@
         let dayCounter = 1;
         let today = new Date();
         let lastPassedDay = null;
+        let daysWithCheckmark = 0;
 
         while (currentDate <= endDate && dayCounter <= days) {
           const dayOfWeek = currentDate.getDay();
@@ -536,6 +537,7 @@
             if (currentDate < today) {
               row.classList.add("passed-day-row");
               lastPassedDay = { row: row, day: dayCounter };
+              daysWithCheckmark++;
             }
 
             const formattedDate = formatDate(currentDate);
@@ -595,7 +597,7 @@
             ? targetAchievedDay + " dias de operação."
             : "Meta não atingida.";
         document.querySelector("#daysOperated").textContent =
-          businessDays + " dias";
+          daysWithCheckmark - 1 + " dias";
       }
 
       async function fetchDollarRate() {
