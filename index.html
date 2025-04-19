@@ -91,23 +91,23 @@
         .input-grid {
           grid-template-columns: repeat(3, 1fr);
         }
-        
+
         .input-group.larger-field {
           grid-column: span 1;
         }
-        
+
         .input-group:nth-child(1),
         .input-group:nth-child(2),
         .input-group:nth-child(3) {
           grid-column: span 1;
         }
-        
+
         .input-group:nth-child(4),
         .input-group:nth-child(5),
         .input-group:nth-child(6) {
           grid-column: span 1;
         }
-        
+
         .input-group:nth-child(7),
         .input-group:nth-child(8),
         .input-group:nth-child(9) {
@@ -411,13 +411,15 @@
         );
         const marginValue = parseFloat(marginInput.value);
         const recalculateDays = parseInt(document.querySelector("#recalculateDaysInput").value);
+
+        const targetValueInReais = (targetValue * averageDolar).toFixed(2);
         
         doc.setFontSize(10);
         doc.text(`Banca inicial ${initialBank.toFixed(2)}`, 10, 10);
         doc.text(`Dias ${days}`, 10, 20);
         doc.text(`Operações por dia ${operationsPerDay}`, 10, 30);
         doc.text(`Ticks por operação ${ticksPerOperation}`, 10, 40);
-        doc.text(`Meta ${targetValue.toFixed(2)} | R$ 1.000.000,00`, 10, 50);
+        doc.text(`Meta ${targetValue.toFixed(2)} | R$ ${targetValueInReais}`, 10, 50);
         doc.text(`Valor de 0.01 lote ${marginValue.toFixed(2)}`, 10, 60);
         doc.text(`Moeda ${moeda}`, 10, 70);
         doc.text(`Recalcular a cada ${recalculateDays} dias`, 10, 80);
@@ -480,7 +482,6 @@
           const data = await response.json();
 
           if (data && data.data && data.data.calculate) {
-            // Formatar o valor com 2 casas decimais
             return parseFloat(data.data.calculate.margin).toFixed(2);
           } else {
             console.error("Unexpected API response:", data);
@@ -583,8 +584,8 @@
             const formattedDate = formatDate(currentDate);
 
             let dayDisplay = dayCounter;
-            
-            const profitPerOperation = operationsPerDay > 0 ? 
+
+            const profitPerOperation = operationsPerDay > 0 ?
               (dailyProfit / operationsPerDay).toFixed(2) : "0.00";
 
             row.innerHTML = `
@@ -648,14 +649,8 @@
             "https://economia.awesomeapi.com.br/json/last/USD-BRL"
           );
           const data = await response.json();
-          usdToBrlCreateDate = data.USDBRL.create_date;
-          const high = parseFloat(data.USDBRL.high);
-          const low = parseFloat(data.USDBRL.low);
-          const average = ((high + low) / 2).toFixed(2);
-          averageDolar = 1000000 / average;
-          document.querySelector("#targetInput").value = averageDolar.toFixed(
-            2
-          );
+          averageDolar = parseFloat(data.USDBRL.high);
+
         } catch (error) {
           console.error("Erro ao buscar a cotação do dólar:", error);
         }
@@ -699,8 +694,6 @@
       document
         .querySelector("#recalculateDaysInput")
         .addEventListener("input", generateProjection);
-
-      let usdToBrlCreateDate;
 
       async function initialize() {
         await fetchDollarRate();
