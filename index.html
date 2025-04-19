@@ -382,7 +382,6 @@
       const lotesInput = document.querySelector("#lotes");
       const moedaSelect = document.querySelector("#moeda");
       let averageDolar = 0;
-      let usdToBrlCreateDate;
       let defaultMarginValue = 1.49;
 
       function exportToPDF() {
@@ -418,7 +417,7 @@
         doc.text(`Dias ${days}`, 10, 20);
         doc.text(`Operações por dia ${operationsPerDay}`, 10, 30);
         doc.text(`Ticks por operação ${ticksPerOperation}`, 10, 40);
-        doc.text(`Meta ${targetValue.toFixed(2)} | R$ ${(targetValue * averageDolar).toFixed(2)}`, 10, 50);
+        doc.text(`Meta ${targetValue.toFixed(2)} | R$ 1.000.000,00`, 10, 50);
         doc.text(`Valor de 0.01 lote ${marginValue.toFixed(2)}`, 10, 60);
         doc.text(`Moeda ${moeda}`, 10, 70);
         doc.text(`Recalcular a cada ${recalculateDays} dias`, 10, 80);
@@ -653,7 +652,7 @@
           const high = parseFloat(data.USDBRL.high);
           const low = parseFloat(data.USDBRL.low);
           const average = ((high + low) / 2).toFixed(2);
-          averageDolar = average;
+          averageDolar = 1000000 / average;
           document.querySelector("#targetInput").value = averageDolar.toFixed(
             2
           );
@@ -700,6 +699,8 @@
       document
         .querySelector("#recalculateDaysInput")
         .addEventListener("input", generateProjection);
+
+      let usdToBrlCreateDate;
 
       async function initialize() {
         await fetchDollarRate();
