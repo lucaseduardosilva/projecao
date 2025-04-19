@@ -87,7 +87,6 @@
         margin-bottom: 1.5rem;
       }
 
-      /* New styles for specific fields to make them larger */
       @media (min-width: 769px) {
         .input-grid {
           grid-template-columns: repeat(3, 1fr);
@@ -97,21 +96,18 @@
           grid-column: span 1;
         }
         
-        /* First row with 3 items */
         .input-group:nth-child(1),
         .input-group:nth-child(2),
         .input-group:nth-child(3) {
           grid-column: span 1;
         }
         
-        /* Second row with 3 items */
         .input-group:nth-child(4),
         .input-group:nth-child(5),
         .input-group:nth-child(6) {
           grid-column: span 1;
         }
         
-        /* Third row with fewer items - make them larger */
         .input-group:nth-child(7),
         .input-group:nth-child(8),
         .input-group:nth-child(9) {
@@ -269,13 +265,11 @@
         background-color: var(--gray-50);
       }
 
-      /* Remove background color from last-passed-day-row */
       tr.last-passed-day-row td {
         background-color: white !important;
         font-weight: normal;
       }
 
-      /* Hide the period info */
       .info-item.period-info {
         display: none;
       }
@@ -329,7 +323,6 @@
         </div>
 
         <div class="info-grid">
-          <!-- Period info commented out -->
           <div class="info-item period-info" style="display: none;">
             <span class="label">Período</span>
             <span class="value">10/03/2025 até 19/12/2025</span>
@@ -368,6 +361,7 @@
                 <th>Data</th>
                 <th>Banca Inicial</th>
                 <th>Lucro do Dia</th>
+                <th>Lucro por Operação</th>
                 <th>Banca Total</th>
                 <th>Meta %</th>
                 <th>Lote</th>
@@ -423,7 +417,7 @@
         doc.text(`Dias ${days}`, 10, 20);
         doc.text(`Operações por dia ${operationsPerDay}`, 10, 30);
         doc.text(`Ticks por operação ${ticksPerOperation}`, 10, 40);
-        doc.text(`Meta ${targetValue.toFixed(2)} | 1 milhão de reais`, 10, 50);
+        doc.text(`Meta ${targetValue.toFixed(2)} | R$ 1.000.000,00`, 10, 50);
         doc.text(`Valor de 0.01 lote ${marginValue.toFixed(2)}`, 10, 60);
         doc.text(`Moeda ${moeda}`, 10, 70);
         doc.text(`Recalcular a cada ${recalculateDays} dias`, 10, 80);
@@ -486,7 +480,8 @@
           const data = await response.json();
 
           if (data && data.data && data.data.calculate) {
-            return data.data.calculate.margin;
+            // Formatar o valor com 2 casas decimais
+            return parseFloat(data.data.calculate.margin).toFixed(2);
           } else {
             console.error("Unexpected API response:", data);
             return null;
@@ -587,17 +582,17 @@
 
             const formattedDate = formatDate(currentDate);
 
-            // Removed checkmark (✓) from day display
             let dayDisplay = dayCounter;
-            // if (currentDate < today) {
-            //   dayDisplay = `${dayCounter} ✓`;
-            // }
+            
+            const profitPerOperation = operationsPerDay > 0 ? 
+              (dailyProfit / operationsPerDay).toFixed(2) : "0.00";
 
             row.innerHTML = `
               <td>${dayDisplay}</td>
               <td>${formattedDate}</td>
               <td>${(bank - dailyProfit).toFixed(2)}</td>
               <td>${dailyProfit.toFixed(2)}</td>
+              <td>${profitPerOperation}</td>
               <td>${bank.toFixed(2)}</td>
               <td>${dailyPercentage.toFixed(2)}%</td>
               <td>${lotValue.toFixed(2)}</td>
@@ -627,7 +622,6 @@
         }
 
         if (lastPassedDay) {
-          // Still mark the last passed day for tracking purposes, but don't style it differently
           lastPassedDay.row.classList.remove("passed-day-row");
           lastPassedDay.row.classList.add("last-passed-day-row");
           lastPassedDay.row.querySelector("td:first-child").textContent =
@@ -679,7 +673,7 @@
 
         const margin = await fetchMargin(selectedMoeda);
         marginInput.value =
-          margin !== null ? String(margin) : String(defaultMarginValue);
+          margin !== null ? margin : parseFloat(defaultMarginValue).toFixed(2);
         generateProjection();
       });
 
@@ -712,7 +706,7 @@
         await fetchDollarRate();
         const margin = await fetchMargin(moedaSelect.value);
         marginInput.value =
-          margin !== null ? String(margin) : String(defaultMarginValue);
+          margin !== null ? margin : parseFloat(defaultMarginValue).toFixed(2);
         generateProjection();
       }
 
