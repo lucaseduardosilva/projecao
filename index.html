@@ -508,12 +508,12 @@
         const operationsPerDay = parseInt(
           document.querySelector("#operationsInput").value
         );
-        const targetValue = parseFloat(
-          document.querySelector("#targetInput").value
-        );
-        const ticksPerOperation = parseInt(
+        let ticksPerOperation = parseInt(
           document.querySelector("#ticksInput").value
         );
+
+		const ticksMultiplier = moeda === "USDJPY" ? 100 : 1;
+        const effectiveTicksPerOperation = ticksPerOperation * ticksMultiplier;
 
         const tickValue = moeda === "XAUUSD" ? 0.1 : 0.01;
 
@@ -528,7 +528,7 @@
         }
 
         let dailyPercentage =
-          ((operationsPerDay * ticksPerOperation * tickValue * lotValue) /
+          ((operationsPerDay * effectiveTicksPerOperation * tickValue * lotValue) /
             bank) *
           100;
         let dailyPercentage2 = dailyPercentage.toFixed(2);
@@ -556,7 +556,7 @@
           const dayOfWeek = currentDate.getDay();
           if (dayOfWeek !== 0 && dayOfWeek !== 6) {
             const dailyProfit =
-              operationsPerDay * ticksPerOperation * tickValue * lotValue;
+              operationsPerDay * effectiveTicksPerOperation * tickValue * lotValue;
             bank += dailyProfit;
 
             const row = document.createElement("tr");
@@ -602,7 +602,7 @@
               <td>${dailyPercentage.toFixed(2)}%</td>
               <td>${lotValue.toFixed(2)}</td>
               <td>${operationsPerDay}</td>
-              <td>${ticksPerOperation}</td>
+              <td>${effectiveTicksPerOperation}</td>
             `;
 
             tableBody.appendChild(row);
@@ -671,8 +671,9 @@
         if (selectedMoeda === "XAUUSD") {
           ticksInput.value = 2000;
           lotesInput.value = 200;
+		  bankInput.value = 2;
         } else if (selectedMoeda === "USDJPY") {
-          ticksInput.value = 2000;
+          ticksInput.value = 200;
           lotesInput.value = 200;
           bankInput.value = 1;
         }
