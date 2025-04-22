@@ -91,26 +91,27 @@
         .input-grid {
           grid-template-columns: repeat(3, 1fr);
         }
-        
+
         .input-group.larger-field {
           grid-column: span 1;
         }
-        
+
         .input-group:nth-child(1),
         .input-group:nth-child(2),
         .input-group:nth-child(3) {
           grid-column: span 1;
         }
-        
+
         .input-group:nth-child(4),
         .input-group:nth-child(5),
         .input-group:nth-child(6) {
           grid-column: span 1;
         }
-        
+
         .input-group:nth-child(7),
         .input-group:nth-child(8),
-        .input-group:nth-child(9) {
+        .input-group:nth-child(9),
+        .input-group:nth-child(10) {
           grid-column: span 1;
         }
       }
@@ -301,6 +302,16 @@
             </select>
           </div>
           <div class="input-group">
+            <label for="accountType">Tipo de Conta</label>
+            <select name="accountType" id="accountType">
+              <option value="mt5_mini_real_vc">Standard</option>
+              <option value="mt5_raw_real_vc">Raw Spread</option>
+              <option value="mt5_zero_real_vc">Zero</option>
+              <option value="mt5_classic_real_vc" selected>Pro</option>
+              <option value="mt5_cent_real_vc">Standard Cent</option>
+            </select>
+          </div>
+          <div class="input-group">
             <label for="ticksInput">Ticks por operação</label>
             <input type="number" id="ticksInput" value="200" />
           </div>
@@ -381,6 +392,7 @@
       const ticksInput = document.querySelector("#ticksInput");
       const lotesInput = document.querySelector("#lotes");
       const moedaSelect = document.querySelector("#moeda");
+      const accountTypeSelect = document.querySelector("#accountType");
       let averageDolar = 0;
       let defaultMarginValue = 1.49;
 
@@ -411,7 +423,8 @@
         );
         const marginValue = parseFloat(marginInput.value);
         const recalculateDays = parseInt(document.querySelector("#recalculateDaysInput").value);
-        
+        const accountType = document.querySelector("#accountType").value;
+
         doc.setFontSize(10);
         doc.text(`Banca inicial ${initialBank.toFixed(2)}`, 10, 10);
         doc.text(`Dias ${days}`, 10, 20);
@@ -420,20 +433,21 @@
         doc.text(`Meta ${targetValue.toFixed(2)} | R$ 1.000.000,00`, 10, 50);
         doc.text(`Valor de 0.01 lote ${marginValue.toFixed(2)}`, 10, 60);
         doc.text(`Moeda ${moeda}`, 10, 70);
-        doc.text(`Recalcular a cada ${recalculateDays} dias`, 10, 80);
-        doc.text(`Meta atingida em ${targetDay} dias de operação`, 10, 90);
-        doc.text(`Banca final ${finalBank}`, 10, 100);
+        doc.text(`Tipo de Conta ${accountType}`, 10, 80);
+        doc.text(`Recalcular a cada ${recalculateDays} dias`, 10, 90);
+        doc.text(`Meta atingida em ${targetDay} dias de operação`, 10, 100);
+        doc.text(`Banca final ${finalBank}`, 10, 110);
 
         doc.autoTable({
           html: "#projectionTable",
-          startY: 110,
+          startY: 120,
           styles: { fontSize: 8 },
         });
 
         doc.save("projection.pdf");
       }
 
-      async function fetchMargin(instrument) {
+      async function fetchMargin(instrument, accountType) {
         try {
           const response = await fetch("https://www.exness.com/pwapi/", {
             method: "POST",
@@ -460,7 +474,7 @@
               operationName: "Calculate",
               variables: {
                 input: {
-                  account_type: "mt5_classic_real_vc",
+                  account_type: accountType,
                   instrument: instrument,
                   currency: "USD",
                   leverage: 2000,
@@ -480,7 +494,6 @@
           const data = await response.json();
 
           if (data && data.data && data.data.calculate) {
-            // Formatar o valor com 2 casas decimais
             return parseFloat(data.data.calculate.margin).toFixed(2);
           } else {
             console.error("Unexpected API response:", data);
@@ -510,6 +523,7 @@
         const ticksPerOperation = parseInt(
           document.querySelector("#ticksInput").value
         );
+        const accountType = document.querySelector("#accountType").value;
 
         const tickValue = moeda === "XAUUSD" ? 0.1 : 0.01;
 
@@ -539,7 +553,7 @@
         let greenRowAdded = false;
         let targetAchievedDay = null;
 
-        const startDate = new Date("2025-03-10T00:00:00");
+        const startDate = new Date("2025-04-21T00:00:00");
         const endDate = new Date("2025-12-19T00:00:00");
         let businessDays = 0;
         let currentDate = new Date(startDate);
@@ -583,8 +597,8 @@
             const formattedDate = formatDate(currentDate);
 
             let dayDisplay = dayCounter;
-            
-            const profitPerOperation = operationsPerDay > 0 ? 
+
+            const profitPerOperation = operationsPerDay > 0 ?
               (dailyProfit / operationsPerDay).toFixed(2) : "0.00";
 
             row.innerHTML = `
@@ -671,7 +685,15 @@
           lotesInput.value = 20;
         }
 
-        const margin = await fetchMargin(selectedMoeda);
+        const margin = await fetchMargin(selectedMoeda, accountTypeSelect.value);
+        marginInput.value =
+          margin !== null ? margin : parseFloat(defaultMarginValue).toFixed(2);
+        generateProjection();
+      });
+
+      accountTypeSelect.addEventListener("change", async () => {
+        const selectedAccountType = accountTypeSelect.value;
+        const margin = await fetchMargin(moedaSelect.value, selectedAccountType);
         marginInput.value =
           margin !== null ? margin : parseFloat(defaultMarginValue).toFixed(2);
         generateProjection();
@@ -704,7 +726,7 @@
 
       async function initialize() {
         await fetchDollarRate();
-        const margin = await fetchMargin(moedaSelect.value);
+        const margin = await fetchMargin(moedaSelect.value, accountTypeSelect.value);
         marginInput.value =
           margin !== null ? margin : parseFloat(defaultMarginValue).toFixed(2);
         generateProjection();
