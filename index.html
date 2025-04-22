@@ -111,7 +111,8 @@
         .input-group:nth-child(7),
         .input-group:nth-child(8),
         .input-group:nth-child(9),
-        .input-group:nth-child(10) {
+        .input-group:nth-child(10),
+        .input-group:nth-child(11) {
           grid-column: span 1;
         }
       }
@@ -295,23 +296,6 @@
             <input type="number" id="operationsInput" value="1" />
           </div>
           <div class="input-group">
-            <label for="moeda">Moeda</label>
-            <select name="moeda" id="moeda">
-              <option value="XAUUSD">XAUUSD</option>
-              <option value="BTCUSD">BTCUSD</option>
-            </select>
-          </div>
-          <div class="input-group">
-            <label for="accountType">Tipo de Conta</label>
-            <select name="accountType" id="accountType">
-              <option value="mt5_mini_real_vc">Standard</option>
-              <option value="mt5_raw_real_vc">Raw Spread</option>
-              <option value="mt5_zero_real_vc">Zero</option>
-              <option value="mt5_classic_real_vc" selected>Pro</option>
-              <option value="mt5_cent_real_vc">Standard Cent</option>
-            </select>
-          </div>
-          <div class="input-group">
             <label for="ticksInput">Ticks por operação</label>
             <input type="number" id="ticksInput" value="200" />
           </div>
@@ -320,16 +304,54 @@
             <input type="number" id="targetInput" value="200000.00" />
           </div>
           <div class="input-group larger-field">
-            <label for="marginInput">Margem de 0.01 lote</label>
-            <input type="number" id="marginInput" value="" step="0.01" />
-          </div>
-          <div class="input-group larger-field">
-            <label for="lotes">Lotes</label>
-            <input type="number" id="lotes" value="200" />
-          </div>
-          <div class="input-group larger-field">
             <label for="recalculateDaysInput">Recalcular a cada (dias)</label>
             <input type="number" id="recalculateDaysInput" value="10" min="1" />
+          </div>
+
+          <div class="input-group">
+            <label for="accountType">Tipo de Conta</label>
+            <select name="accountType" id="accountType">
+              <option value="mt5_mini_real_vc">Standard</option>
+              <option value="mt5_raw_real_vc">Raw Spread</option>
+              <option value="mt5_zero_real_vc" selected>Zero</option>
+              <option value="mt5_classic_real_vc">Pro</option>
+              <option value="mt5_cent_real_vc">Standard Cent</option>
+            </select>
+          </div>
+
+          <div class="input-group">
+            <label for="accountCurrency">Moeda da Conta</label>
+            <select name="accountCurrency" id="accountCurrency">
+              <option value="USD" selected>USD</option>
+              <!-- Add other currency options here if needed -->
+            </select>
+          </div>
+
+          <div class="input-group">
+            <label for="instrument">Instrumento</label>
+            <select name="instrument" id="instrument">
+              <option value="XAUUSD" selected>XAUUSD</option>
+              <option value="BTCUSD">BTCUSD</option>
+              <!-- Add other instrument options here if needed -->
+            </select>
+          </div>
+
+          <div class="input-group">
+            <label for="lot">Lote</label>
+            <input type="number" id="lot" value="0.01" step="0.01" />
+          </div>
+
+          <div class="input-group">
+            <label for="leverage">Alavancagem</label>
+            <select name="leverage" id="leverage">
+              <option value="2000" selected>1:2000</option>
+              <!-- Add other leverage options here if needed -->
+            </select>
+          </div>
+
+          <div class="input-group larger-field">
+            <label for="marginInput">Margem de 0.01 lote</label>
+            <input type="number" id="marginInput" value="" step="0.01" readonly/>
           </div>
         </div>
 
@@ -390,57 +412,58 @@
       const targetInputElement = document.getElementById("targetInput");
       const marginInput = document.querySelector("#marginInput");
       const ticksInput = document.querySelector("#ticksInput");
-      const lotesInput = document.querySelector("#lotes");
-      const moedaSelect = document.querySelector("#moeda");
+      const lotInput = document.querySelector("#lot");
       const accountTypeSelect = document.querySelector("#accountType");
+      const accountCurrencySelect = document.querySelector("#accountCurrency");
+      const instrumentSelect = document.querySelector("#instrument");
+      const leverageSelect = document.querySelector("#leverage");
+      const daysInput = document.querySelector("#daysInput");
+      const operationsInput = document.querySelector("#operationsInput");
+      const bankInput = document.querySelector("#bankInput");
+      const targetInput = document.querySelector("#targetInput");
+      const recalculateDaysInput = document.querySelector("#recalculateDaysInput");
       let averageDolar = 0;
       let defaultMarginValue = 1.49;
 
       function exportToPDF() {
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF();
-        const moeda = document.querySelector("#moeda").value;
-        const lotes = parseFloat(
-          document.querySelector("#lotes").value
-        );
-        const initialBank = parseFloat(
-          document.querySelector("#bankInput").value
-        );
-        const days = parseInt(document.querySelector("#daysInput").value);
-        const operationsPerDay = parseInt(
-          document.querySelector("#operationsInput").value
-        );
-        const targetValue = parseFloat(
-          document.querySelector("#targetInput").value
-        );
-        const finalBank =
-          document.querySelector("#finalBankValue").textContent;
-        const ticksPerOperation = parseInt(
-          document.querySelector("#ticksInput").value
-        );
-        const targetDay = parseInt(
-          document.querySelector("#targetAchievedDay").textContent
-        );
+
+        const initialBank = parseFloat(bankInput.value);
+        const days = parseInt(daysInput.value);
+        const operationsPerDay = parseInt(operationsInput.value);
+        const ticksPerOperation = parseInt(ticksInput.value);
+        const targetValue = parseFloat(targetInput.value);
+        const recalculateDays = parseInt(recalculateDaysInput.value);
+
+        const accountType = accountTypeSelect.value;
+        const accountCurrency = accountCurrencySelect.value;
+        const instrument = instrumentSelect.value;
+        const lot = parseFloat(lotInput.value);
+        const leverage = leverageSelect.value;
+        const finalBank = document.querySelector("#finalBankValue").textContent;
+        const targetDay = parseInt(document.querySelector("#targetAchievedDay").textContent);
         const marginValue = parseFloat(marginInput.value);
-        const recalculateDays = parseInt(document.querySelector("#recalculateDaysInput").value);
-        const accountType = document.querySelector("#accountType").value;
 
         doc.setFontSize(10);
         doc.text(`Banca inicial ${initialBank.toFixed(2)}`, 10, 10);
         doc.text(`Dias ${days}`, 10, 20);
         doc.text(`Operações por dia ${operationsPerDay}`, 10, 30);
         doc.text(`Ticks por operação ${ticksPerOperation}`, 10, 40);
-        doc.text(`Meta ${targetValue.toFixed(2)} | R$ 1.000.000,00`, 10, 50);
-        doc.text(`Valor de 0.01 lote ${marginValue.toFixed(2)}`, 10, 60);
-        doc.text(`Moeda ${moeda}`, 10, 70);
-        doc.text(`Tipo de Conta ${accountType}`, 10, 80);
-        doc.text(`Recalcular a cada ${recalculateDays} dias`, 10, 90);
-        doc.text(`Meta atingida em ${targetDay} dias de operação`, 10, 100);
-        doc.text(`Banca final ${finalBank}`, 10, 110);
+        doc.text(`Meta ${targetValue.toFixed(2)}`, 10, 50);
+        doc.text(`Tipo de Conta ${accountType}`, 10, 60);
+        doc.text(`Moeda da Conta ${accountCurrency}`, 10, 70);
+        doc.text(`Instrumento ${instrument}`, 10, 80);
+        doc.text(`Lote ${lot}`, 10, 90);
+        doc.text(`Alavancagem ${leverage}`, 10, 100);
+        doc.text(`Valor de 0.01 lote ${marginValue.toFixed(2)}`, 10, 110);
+        doc.text(`Recalcular a cada ${recalculateDays} dias`, 10, 120);
+        doc.text(`Meta atingida em ${targetDay} dias de operação`, 10, 130);
+        doc.text(`Banca final ${finalBank}`, 10, 140);
 
         doc.autoTable({
           html: "#projectionTable",
-          startY: 120,
+          startY: 150,
           styles: { fontSize: 8 },
         });
 
@@ -506,48 +529,35 @@
       }
 
       async function generateProjection() {
-        const moeda = document.querySelector("#moeda").value;
-        const lotes = parseFloat(
-          document.querySelector("#lotes").value
-        );
-        const initialBank = parseFloat(
-          document.querySelector("#bankInput").value
-        );
-        const days = parseInt(document.querySelector("#daysInput").value);
-        const operationsPerDay = parseInt(
-          document.querySelector("#operationsInput").value
-        );
-        const targetValue = parseFloat(
-          document.querySelector("#targetInput").value
-        );
-        const ticksPerOperation = parseInt(
-          document.querySelector("#ticksInput").value
-        );
-        const accountType = document.querySelector("#accountType").value;
+        const initialBank = parseFloat(bankInput.value);
+        const days = parseInt(daysInput.value);
+        const operationsPerDay = parseInt(operationsInput.value);
+        const ticksPerOperation = parseInt(ticksInput.value);
+        const targetValue = parseFloat(targetInput.value);
+        const recalculateDays = parseInt(recalculateDaysInput.value);
 
-        const tickValue = moeda === "XAUUSD" ? 0.1 : 0.01;
+        const accountType = accountTypeSelect.value;
+        const accountCurrency = accountCurrencySelect.value;
+        const instrument = instrumentSelect.value;
+        const lot = parseFloat(lotInput.value);
+        const leverage = leverageSelect.value;
 
         const marginValue = parseFloat(marginInput.value);
+        const tickValue = instrument === "XAUUSD" ? 0.1 : 0.01;
 
         let bank = initialBank;
-        const maxLotValue = lotes;
+        const maxLotValue = 200;  // Assuming this value remains fixed
 
         let lotValue = Math.floor(bank / marginValue) * 0.01;
         if (lotValue > maxLotValue) {
-          lotValue = maxLotValue;
+            lotValue = maxLotValue;
         }
 
-        let dailyPercentage =
-          ((operationsPerDay * ticksPerOperation * tickValue * lotValue) /
-            bank) *
-          100;
+        let dailyPercentage = ((operationsPerDay * ticksPerOperation * tickValue * lotValue) / bank) * 100;
         let dailyPercentage2 = dailyPercentage.toFixed(2);
-        document.querySelector("#dailyProfitPercentage").textContent =
-          dailyPercentage2 + "%";
+        document.querySelector("#dailyProfitPercentage").textContent = dailyPercentage2 + "%";
 
-        let currentMonth = 1;
         const tableBody = document.querySelector("#projectionTable tbody");
-
         tableBody.innerHTML = "";
 
         let greenRowAdded = false;
@@ -555,105 +565,90 @@
 
         const startDate = new Date("2025-04-21T00:00:00");
         const endDate = new Date("2025-12-19T00:00:00");
-        let businessDays = 0;
-        let currentDate = new Date(startDate);
         let dayCounter = 1;
         let today = new Date();
         let lastPassedDay = null;
         let daysWithCheckmark = 0;
+        let currentDate = new Date(startDate);
 
         while (currentDate <= endDate && dayCounter <= days) {
-          const dayOfWeek = currentDate.getDay();
-          if (dayOfWeek !== 0 && dayOfWeek !== 6) {
-            const dailyProfit =
-              operationsPerDay * ticksPerOperation * tickValue * lotValue;
-            bank += dailyProfit;
+            const dayOfWeek = currentDate.getDay();
+            if (dayOfWeek !== 0 && dayOfWeek !== 6) {
+                const dailyProfit = operationsPerDay * ticksPerOperation * tickValue * lotValue;
+                bank += dailyProfit;
 
-            const row = document.createElement("tr");
+                const row = document.createElement("tr");
 
-            if (!greenRowAdded && bank >= targetValue) {
-              row.classList.add("green-row");
-              greenRowAdded = true;
-              targetAchievedDay = dayCounter;
+                if (!greenRowAdded && bank >= targetValue) {
+                    row.classList.add("green-row");
+                    greenRowAdded = true;
+                    targetAchievedDay = dayCounter;
+                }
+
+                const formatDate = (date) => {
+                    const year = date.getFullYear();
+                    const month = String(date.getMonth() + 1).padStart(2, "0");
+                    const day = String(date.getDate()).padStart(2, "0");
+                    return `${day}/${month}/${year}`;
+                };
+
+                if (formatDate(currentDate) === formatDate(today) && !greenRowAdded) {
+                    row.classList.add("current-day-row");
+                }
+
+                if (currentDate < today) {
+                    row.classList.add("passed-day-row");
+                    lastPassedDay = { row: row, day: dayCounter };
+                    daysWithCheckmark++;
+                }
+
+                const formattedDate = formatDate(currentDate);
+
+                let dayDisplay = dayCounter;
+
+                const profitPerOperation = operationsPerDay > 0 ? (dailyProfit / operationsPerDay).toFixed(2) : "0.00";
+
+                row.innerHTML = `
+                    <td>${dayDisplay}</td>
+                    <td>${formattedDate}</td>
+                    <td>${(bank - dailyProfit).toFixed(2)}</td>
+                    <td>${dailyProfit.toFixed(2)}</td>
+                    <td>${profitPerOperation}</td>
+                    <td>${bank.toFixed(2)}</td>
+                    <td>${dailyPercentage.toFixed(2)}%</td>
+                    <td>${lotValue.toFixed(2)}</td>
+                    <td>${operationsPerDay}</td>
+                    <td>${ticksPerOperation}</td>
+                `;
+
+                tableBody.appendChild(row);
+                dayCounter++;
             }
+            currentDate.setDate(currentDate.getDate() + 1);
 
-            const formatDate = (date) => {
-              const year = date.getFullYear();
-              const month = String(date.getMonth() + 1).padStart(2, "0");
-              const day = String(date.getDate()).padStart(2, "0");
-              return `${day}/${month}/${year}`;
-            };
-
-            if (formatDate(currentDate) === formatDate(today) && !greenRowAdded) {
-              row.classList.add("current-day-row");
+            if (dayCounter % recalculateDays === 1 && dayCounter !== 1) {
+                if (lotValue < maxLotValue) {
+                    lotValue = Math.min(
+                        maxLotValue,
+                        Math.floor(bank / marginValue) * 0.01
+                    );
+                }
             }
-
-            if (currentDate < today) {
-              row.classList.add("passed-day-row");
-              lastPassedDay = { row: row, day: dayCounter };
-              daysWithCheckmark++;
-            }
-
-            const formattedDate = formatDate(currentDate);
-
-            let dayDisplay = dayCounter;
-
-            const profitPerOperation = operationsPerDay > 0 ?
-              (dailyProfit / operationsPerDay).toFixed(2) : "0.00";
-
-            row.innerHTML = `
-              <td>${dayDisplay}</td>
-              <td>${formattedDate}</td>
-              <td>${(bank - dailyProfit).toFixed(2)}</td>
-              <td>${dailyProfit.toFixed(2)}</td>
-              <td>${profitPerOperation}</td>
-              <td>${bank.toFixed(2)}</td>
-              <td>${dailyPercentage.toFixed(2)}%</td>
-              <td>${lotValue.toFixed(2)}</td>
-              <td>${operationsPerDay}</td>
-              <td>${ticksPerOperation}</td>
-            `;
-
-            tableBody.appendChild(row);
-            businessDays++;
-            dayCounter++;
-          }
-          currentDate.setDate(currentDate.getDate() + 1);
-
-          if (dayCounter % 20 === 1 && dayCounter !== 1) {
-            currentMonth += 1;
-          }
-
-          const recalculateDays = parseInt(document.querySelector("#recalculateDaysInput").value) || 10;
-          if (dayCounter % recalculateDays === 1 && dayCounter !== 1) {
-            if (lotValue < maxLotValue) {
-              lotValue = Math.min(
-                maxLotValue,
-                Math.floor(bank / marginValue) * 0.01
-              );
-            }
-          }
         }
 
         if (lastPassedDay) {
-          lastPassedDay.row.classList.remove("passed-day-row");
-          lastPassedDay.row.classList.add("last-passed-day-row");
-          lastPassedDay.row.querySelector("td:first-child").textContent =
-            lastPassedDay.day;
+            lastPassedDay.row.classList.remove("passed-day-row");
+            lastPassedDay.row.classList.add("last-passed-day-row");
+            lastPassedDay.row.querySelector("td:first-child").textContent = lastPassedDay.day;
         }
 
         const formattedBankValue = new Intl.NumberFormat("en-US", {
-          style: "currency",
-          currency: "USD",
+            style: "currency",
+            currency: "USD",
         }).format(bank);
-        document.querySelector("#finalBankValue").textContent =
-          formattedBankValue;
-        document.querySelector("#targetAchievedDay").textContent =
-          targetAchievedDay
-            ? targetAchievedDay + " dias de operação"
-            : "Meta não atingida";
-        document.querySelector("#daysOperated").textContent =
-          daysWithCheckmark - 1 + " dias";
+        document.querySelector("#finalBankValue").textContent = formattedBankValue;
+        document.querySelector("#targetAchievedDay").textContent = targetAchievedDay ? targetAchievedDay + " dias de operação" : "Meta não atingida";
+        document.querySelector("#daysOperated").textContent = daysWithCheckmark - 1 + " dias";
       }
 
       async function fetchDollarRate() {
@@ -675,61 +670,40 @@
         }
       }
 
-      moedaSelect.addEventListener("change", async () => {
-        const selectedMoeda = moedaSelect.value;
-        if (selectedMoeda === "XAUUSD") {
-          ticksInput.value = 500;
-          lotesInput.value = 200;
-        } else if (selectedMoeda === "BTCUSD") {
-          ticksInput.value = 5000;
-          lotesInput.value = 20;
+      async function updateMargin() {
+          const accountType = accountTypeSelect.value;
+          const instrument = instrumentSelect.value;
+
+          const margin = await fetchMargin(instrument, accountType);
+          marginInput.value = margin !== null ? margin : parseFloat(defaultMarginValue).toFixed(2);
+
+          generateProjection();
+      }
+
+      accountTypeSelect.addEventListener("change", updateMargin);
+      accountCurrencySelect.addEventListener("change", updateMargin);
+      instrumentSelect.addEventListener("change", () => {
+        if (instrumentSelect.value === "XAUUSD") {
+            ticksInput.value = 200;
+        } else if (instrumentSelect.value === "BTCUSD") {
+            ticksInput.value = 5000;
         }
-
-        const margin = await fetchMargin(selectedMoeda, accountTypeSelect.value);
-        marginInput.value =
-          margin !== null ? margin : parseFloat(defaultMarginValue).toFixed(2);
-        generateProjection();
+        updateMargin()
       });
+      lotInput.addEventListener("change", updateMargin)
 
-      accountTypeSelect.addEventListener("change", async () => {
-        const selectedAccountType = accountTypeSelect.value;
-        const margin = await fetchMargin(moedaSelect.value, selectedAccountType);
-        marginInput.value =
-          margin !== null ? margin : parseFloat(defaultMarginValue).toFixed(2);
-        generateProjection();
-      });
-
-      marginInput.addEventListener("input", generateProjection);
-      document
-        .querySelector("#lotes")
-        .addEventListener("input", generateProjection);
-      document
-        .querySelector("#bankInput")
-        .addEventListener("input", generateProjection);
-      document
-        .querySelector("#daysInput")
-        .addEventListener("input", generateProjection);
-      document
-        .querySelector("#operationsInput")
-        .addEventListener("input", generateProjection);
-      document
-        .querySelector("#ticksInput")
-        .addEventListener("input", generateProjection);
-      document
-        .querySelector("#targetInput")
-        .addEventListener("input", generateProjection);
-      document
-        .querySelector("#recalculateDaysInput")
-        .addEventListener("input", generateProjection);
+      bankInput.addEventListener("input", generateProjection);
+      daysInput.addEventListener("input", generateProjection);
+      operationsInput.addEventListener("input", generateProjection);
+      ticksInput.addEventListener("input", generateProjection);
+      targetInput.addEventListener("input", generateProjection);
+      recalculateDaysInput.addEventListener("input", generateProjection);
 
       let usdToBrlCreateDate;
 
       async function initialize() {
         await fetchDollarRate();
-        const margin = await fetchMargin(moedaSelect.value, accountTypeSelect.value);
-        marginInput.value =
-          margin !== null ? margin : parseFloat(defaultMarginValue).toFixed(2);
-        generateProjection();
+        await updateMargin();  // Fetch initial margin value
       }
 
       initialize();
