@@ -259,14 +259,17 @@
     }
 
     tr.passed-day-row td {
-      color: var(--gray-600);
+      background-color: var(--gray-50);
+    }
+
+    tr.passed-day-row td {
+      color: var(--gray-800);
       background-color: var(--gray-50);
     }
 
     tr.last-passed-day-row td {
       background-color: white !important;
       font-weight: normal;
-      color: var(--gray-800) !important;
     }
 
     .info-item.period-info {
@@ -605,9 +608,7 @@
             };
 
             const formattedDate = formatDate(currentDate);
-            let checkmark = "";
             if (currentDate < today) {
-              checkmark = "";
               row.classList.add("passed-day-row");
               lastPassedDay = {
                 row: row,
