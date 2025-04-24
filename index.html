@@ -397,7 +397,7 @@
           <thead>
             <tr>
               <th>Dia</th>
-              <th>Data</th>
+<!--               <th>Data</th> -->
               <th>Banca Inicial</th>
               <th>Lucro do Dia</th>
               <th>Lucro por Operação</th>
@@ -610,15 +610,15 @@
 
             const formattedDate = formatDate(currentDate);
             let checkmark = "";
-            if (currentDate < today) {
-              checkmark = "✔ ";
-              row.classList.add("passed-day-row");
-              lastPassedDay = {
-                row: row,
-                day: dayCounter
-              };
-              daysWithCheckmark++;
-            }
+            // if (currentDate < today) {
+            //   checkmark = "✔ ";
+            //   row.classList.add("passed-day-row");
+            //   lastPassedDay = {
+            //     row: row,
+            //     day: dayCounter
+            //   };
+            //   daysWithCheckmark++;
+            // }
 
             if (
               formatDate(currentDate) === formatDate(today) &&
@@ -631,9 +631,9 @@
 
             const profitPerOperation = operationsPerDay > 0 ? (dailyProfit / operationsPerDay).toFixed(2) : "0.00";
 
+                // <td>${formattedDate}</td>
             row.innerHTML = `
                 <td>${checkmark}${dayDisplay}</td>
-                <td>${formattedDate}</td>
                 <td>${(bank - dailyProfit).toFixed(2)}</td>
                 <td>${dailyProfit.toFixed(2)}</td>
                 <td>${profitPerOperation}</td>
