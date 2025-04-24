@@ -628,6 +628,8 @@
 
             const profitPerOperation = operationsPerDay > 0 ? (dailyProfit / operationsPerDay).toFixed(2) : "0.00";
 
+            const ticksDisplay = moeda === 'USDJPY' ? (ticksPerOperation / 10).toFixed(0) : ticksPerOperation;
+
             row.innerHTML = `
                 <td>${dayDisplay}</td>
                 <td>${(bank - dailyProfit).toFixed(2)}</td>
@@ -637,7 +639,7 @@
                 <td>${dailyPercentage.toFixed(2)}%</td>
                 <td>${lotValue.toFixed(2)}</td>
                 <td>${operationsPerDay}</td>
-                <td>${ticksPerOperation}</td>
+                <td>${ticksDisplay}</td>
               `;
 
             tableBody.appendChild(row);
