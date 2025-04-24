@@ -1,15 +1,16 @@
 <!DOCTYPE html>
-<html lang="pt-br" data-theme="light">
+<html lang="pt-br">
 
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Projeção de Banca</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.3.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.13/jspdf.plugin.autotable.min.js"></script>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
   <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+  <script src="https://npmcdn.com/flatpickr/dist/l10n/pt.js"></script>
   <style>
     :root {
       --primary: #4361ee;
@@ -35,28 +36,6 @@
       --transition: all 0.2s ease-in-out;
     }
 
-    [data-theme="dark"] {
-      --primary: #6366f1;
-      --primary-light: #818cf8;
-      --primary-dark: #4f46e5;
-      --success: #22d3ee;
-      --success-light: #0d9488;
-      --warning: #fb923c;
-      --danger: #ef4444;
-      --light: #1e293b;
-      --dark: #f8fafc;
-      --gray-100: #1e293b;
-      --gray-200: #334155;
-      --gray-300: #475569;
-      --gray-400: #64748b;
-      --gray-500: #94a3b8;
-      --gray-600: #cbd5e1;
-      --gray-700: #e2e8f0;
-      --gray-800: #f1f5f9;
-      --gray-900: #f8fafc;
-      --box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.2);
-    }
-
     * {
       margin: 0;
       padding: 0;
@@ -73,7 +52,6 @@
       align-items: center;
       padding: 2rem 1rem;
       min-height: 100vh;
-      transition: background-color 0.3s ease, color 0.3s ease;
     }
 
     .container {
@@ -97,10 +75,6 @@
       padding: 1.5rem;
       margin-bottom: 1.5rem;
       transition: var(--transition);
-    }
-
-    [data-theme="dark"] .card {
-      background-color: var(--gray-200);
     }
 
     .card:hover {
@@ -163,13 +137,6 @@
       transition: var(--transition);
       color: var(--gray-800);
       background-color: white;
-    }
-
-    [data-theme="dark"] .input-group input,
-    [data-theme="dark"] .input-group select {
-      background-color: var(--gray-300);
-      color: var(--gray-900);
-      border-color: var(--gray-400);
     }
 
     .input-group input:focus,
@@ -270,11 +237,6 @@
       z-index: 10;
     }
 
-    [data-theme="dark"] th {
-      background-color: var(--gray-300);
-      color: var(--gray-900);
-    }
-
     td {
       padding: 0.75rem 1rem;
       border-bottom: 1px solid var(--gray-200);
@@ -286,16 +248,8 @@
       background-color: var(--gray-50);
     }
 
-    [data-theme="dark"] tr:hover td {
-      background-color: var(--gray-300);
-    }
-
     tr.green-row {
       background-color: rgba(76, 201, 240, 0.1) !important;
-    }
-
-    [data-theme="dark"] tr.green-row {
-      background-color: rgba(76, 201, 240, 0.2) !important;
     }
 
     tr.green-row td {
@@ -307,17 +261,8 @@
       background-color: rgba(67, 97, 238, 0.1) !important;
     }
 
-    [data-theme="dark"] tr.current-day-row td {
-      background-color: rgba(67, 97, 238, 0.2) !important;
-    }
-
     tr.passed-day-row td {
       background-color: var(--gray-50);
-    }
-
-    [data-theme="dark"] tr.passed-day-row td {
-      background-color: var(--gray-300);
-      color: var(--gray-600);
     }
 
     tr.passed-day-row td {
@@ -330,12 +275,8 @@
       font-weight: normal;
     }
 
-    [data-theme="dark"] tr.last-passed-day-row td {
-      background-color: var(--gray-200) !important;
-    }
-
     .info-item.period-info {
-      display: block;
+      display: none;
     }
 
     #loading {
@@ -373,84 +314,43 @@
       }
     }
 
-    /* Estilos para o tema escuro */
-    .theme-toggle {
+    /* Estilos para o Modal */
+    .modal {
+      display: none;
       position: fixed;
-      top: 1rem;
-      right: 1rem;
-      background-color: var(--primary);
-      color: white;
-      border: none;
-      border-radius: 50%;
-      width: 40px;
-      height: 40px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      z-index: 1;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      background-color: rgba(0, 0, 0, 0.4);
+    }
+
+    .modal-content {
+      background-color: #fefefe;
+      margin: 15% auto;
+      padding: 20px;
+      border: 1px solid #888;
+      width: 80%;
+      max-width: 600px;
+    }
+
+    .close {
+      color: #aaa;
+      float: right;
+      font-size: 28px;
+      font-weight: bold;
+    }
+
+    .close:hover,
+    .close:focus {
+      color: black;
+      text-decoration: none;
       cursor: pointer;
-      z-index: 100;
-      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-      transition: var(--transition);
     }
 
-    .theme-toggle:hover {
-      background-color: var(--primary-dark);
-    }
-
-    .theme-toggle svg {
-      width: 20px;
-      height: 20px;
-    }
-
-    /* Estilos para o calendário */
-    .calendar-container {
-      margin-bottom: 1.5rem;
-    }
-
-    .flatpickr-calendar {
-      border-radius: var(--border-radius);
-      box-shadow: var(--box-shadow);
-      border: none;
-    }
-
-    [data-theme="dark"] .flatpickr-calendar {
-      background-color: var(--gray-200);
-      color: var(--gray-900);
-      border-color: var(--gray-400);
-    }
-
-    [data-theme="dark"] .flatpickr-months,
-    [data-theme="dark"] .flatpickr-weekdays {
-      background-color: var(--gray-300);
-    }
-
-    [data-theme="dark"] .flatpickr-day {
-      color: var(--gray-900);
-    }
-
-    [data-theme="dark"] .flatpickr-day.selected {
-      background-color: var(--primary);
-      color: white;
-    }
-
-    .date-range-container {
-      display: flex;
-      gap: 1rem;
-      margin-bottom: 1.5rem;
-    }
-
-    .date-range-container .input-group {
-      flex: 1;
-    }
-
-    .actions-container {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-top: 1rem;
-    }
-
-    .btn {
+    .date-picker-button {
       display: inline-flex;
       align-items: center;
       justify-content: center;
@@ -463,63 +363,28 @@
       font-size: 0.875rem;
       cursor: pointer;
       transition: var(--transition);
+      margin-top: 0.5rem;
     }
 
-    .btn:hover {
+    .date-picker-button:hover {
       background-color: var(--primary-dark);
-    }
-
-    .btn-secondary {
-      background-color: var(--gray-300);
-      color: var(--gray-800);
-    }
-
-    .btn-secondary:hover {
-      background-color: var(--gray-400);
-    }
-
-    .calendar-widget {
-      margin-top: 1rem;
-      border-radius: var(--border-radius);
-      overflow: hidden;
     }
   </style>
 </head>
 
 <body>
-  <button class="theme-toggle" id="themeToggle" aria-label="Alternar tema">
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-      stroke-linecap="round" stroke-linejoin="round" class="sun-icon">
-      <circle cx="12" cy="12" r="5"></circle>
-      <line x1="12" y1="1" x2="12" y2="3"></line>
-      <line x1="12" y1="21" x2="12" y2="23"></line>
-      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-      <line x1="1" y1="12" x2="3" y2="12"></line>
-      <line x1="21" y1="12" x2="23" y2="12"></line>
-      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-    </svg>
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-      stroke-linecap="round" stroke-linejoin="round" class="moon-icon" style="display: none;">
-      <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-    </svg>
-  </button>
-
   <div id="loading">
     <div class="loader"></div>
-    &nbsp;&nbsp;Carregando...
+    Carregando...
   </div>
 
   <div class="container">
     <h2>Projeção de Banca</h2>
 
     <div class="card">
-      <div class="date-range-container">
-        <div class="input-group">
-          <label for="startDateInput">Data de Início</label>
-          <input type="text" id="startDateInput" placeholder="Selecione a data de início" />
-        </div>
+      <div class="input-group" style="width: 100%; margin-bottom: 1rem;">
+        <label for="startDateInput">Data Inicial</label>
+        <input type="text" id="startDateInput" class="flatpickr">
       </div>
 
       <div class="input-grid">
@@ -564,14 +429,10 @@
         </div>
       </div>
 
-      <div class="calendar-container">
-        <div class="calendar-widget" id="calendarWidget"></div>
-      </div>
-
       <div class="info-grid">
-        <div class="info-item period-info">
+        <div class="info-item period-info" style="display: none;">
           <span class="label">Período</span>
-          <span class="value" id="periodInfo">-</span>
+          <span class="value">10/03/2025 até 19/12/2025</span>
         </div>
         <div class="info-item">
           <span class="label">Banca Final</span>
@@ -586,6 +447,10 @@
           <span class="value" id="targetAchievedDay">0 dias</span>
         </div>
       </div>
+
+      <!-- Modal Calendar Button -->
+      <button id="openCalendarModal" class="date-picker-button">Abrir Calendário</button>
+
     </div>
 
     <div class="card table-card">
@@ -617,121 +482,63 @@
     </div>
   </div>
 
+  <!-- Modal Structure -->
+  <div id="calendarModal" class="modal">
+    <div class="modal-content">
+      <span class="close">×</span>
+      <div id="calendar"></div>
+    </div>
+  </div>
+
   <script>
+    flatpickr.localize(flatpickr.l10ns.pt);
+
+    flatpickr("#startDateInput", {
+      dateFormat: "d/m/Y",
+      locale: "pt",
+      minDate: "today",
+      disable: [
+        function (date) {
+          // return true to disable
+          return (date.getDay() === 0 || date.getDay() === 6);
+
+        }
+      ],
+      onChange: function (selectedDates, dateStr, instance) {
+        generateProjection();
+      },
+    });
+
     const targetInputElement = document.getElementById("targetInput");
     const marginInput = document.querySelector("#marginInput");
     const ticksInput = document.querySelector("#ticksInput");
     const lotesInput = document.querySelector("#lotes");
     const moedaSelect = document.querySelector("#moeda");
     const bankInput = document.querySelector("#bankInput");
-    const startDateInput = document.querySelector("#startDateInput");
-    const themeToggle = document.querySelector("#themeToggle");
-    const sunIcon = document.querySelector(".sun-icon");
-    const moonIcon = document.querySelector(".moon-icon");
     let averageDolar = 0;
     let defaultMarginValue = 1.49;
     let originalTicksValue = 2000;
     let xauusdValues = {};
-    let calendar;
-    let businessDays = [];
 
-    // Inicializar o tema
-    function initTheme() {
-      const savedTheme = localStorage.getItem('theme') || 'light';
-      document.documentElement.setAttribute('data-theme', savedTheme);
-      updateThemeIcon(savedTheme);
+    // Modal Calendar Logic
+    const modal = document.getElementById("calendarModal");
+    const btn = document.getElementById("openCalendarModal");
+    const span = document.getElementsByClassName("close")[0];
+
+    btn.onclick = function () {
+      modal.style.display = "block";
     }
 
-    function updateThemeIcon(theme) {
-      if (theme === 'dark') {
-        sunIcon.style.display = 'none';
-        moonIcon.style.display = 'block';
-      } else {
-        sunIcon.style.display = 'block';
-        moonIcon.style.display = 'none';
+    span.onclick = function () {
+      modal.style.display = "none";
+    }
+
+    window.onclick = function (event) {
+      if (event.target == modal) {
+        modal.style.display = "none";
       }
     }
 
-    themeToggle.addEventListener('click', () => {
-      const currentTheme = document.documentElement.getAttribute('data-theme');
-      const newTheme = currentTheme === 'light' ? 'dark' : 'light';
-      document.documentElement.setAttribute('data-theme', newTheme);
-      localStorage.setItem('theme', newTheme);
-      updateThemeIcon(newTheme);
-      
-      // Atualizar o calendário para o novo tema
-      if (calendar) {
-        calendar.redraw();
-      }
-    });
-
-    // Inicializar o calendário
-    function initCalendar() {
-      const defaultDate = new Date();
-      
-      calendar = flatpickr(startDateInput, {
-        dateFormat: "d/m/Y",
-        defaultDate: defaultDate,
-        locale: {
-          firstDayOfWeek: 1,
-          weekdays: {
-            shorthand: ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'],
-            longhand: ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado']
-          },
-          months: {
-            shorthand: ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'],
-            longhand: ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro']
-          }
-        },
-        onChange: function(selectedDates, dateStr) {
-          generateProjection();
-        }
-      });
-
-      // Inicializar o widget de calendário
-      flatpickr("#calendarWidget", {
-        inline: true,
-        dateFormat: "d/m/Y",
-        defaultDate: defaultDate,
-        locale: {
-          firstDayOfWeek: 1,
-          weekdays: {
-            shorthand: ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'],
-            longhand: ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado']
-          },
-          months: {
-            shorthand: ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'],
-            longhand: ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro']
-          }
-        },
-        onReady: function(selectedDates, dateStr, instance) {
-          // Destacar dias úteis no calendário
-          updateCalendarBusinessDays(instance);
-        },
-        onMonthChange: function(selectedDates, dateStr, instance) {
-          // Atualizar dias úteis quando o mês mudar
-          updateCalendarBusinessDays(instance);
-        }
-      });
-    }
-
-    // Atualizar dias úteis no calendário
-    function updateCalendarBusinessDays(calendarInstance) {
-      setTimeout(() => {
-        const days = calendarInstance.days.childNodes;
-        days.forEach(day => {
-          if (!day.classList.contains('flatpickr-disabled') && !day.classList.contains('prevMonthDay') && !day.classList.contains('nextMonthDay')) {
-            const date = new Date(day.dateObj);
-            const dayOfWeek = date.getDay();
-            // Verificar se é dia útil (segunda a sexta)
-            if (dayOfWeek !== 0 && dayOfWeek !== 6) {
-              day.classList.add('business-day');
-              day.style.backgroundColor = 'rgba(67, 97, 238, 0.1)';
-            }
-          }
-        });
-      }, 100);
-    }
 
     function exportToPDF() {
       const {
@@ -760,28 +567,22 @@
       );
       const marginValue = parseFloat(marginInput.value);
       const recalculateDays = parseInt(document.querySelector("#recalculateDaysInput").value);
-      const startDate = startDateInput.value;
-      const periodInfo = document.querySelector("#periodInfo").textContent;
 
       doc.setFontSize(10);
       doc.text(`Banca inicial ${initialBank.toFixed(2)}`, 10, 10);
-      doc.text(`Data de início ${startDate}`, 10, 20);
-      doc.text(`Dias ${days}`, 10, 30);
-      doc.text(`Operações por dia ${operationsPerDay}`, 10, 40);
-      doc.text(`Ticks por operação ${ticksPerOperation}`, 10, 50);
-      doc.text(`Meta ${targetValue.toFixed(2)}`, 10, 60);
-      doc.text(`Valor de 0.01 lote ${marginValue.toFixed(2)}`, 10, 70);
-      doc.text(`Moeda ${moeda}  10, 60);
-      doc.text(`Valor de 0.01 lote ${marginValue.toFixed(2)}`, 10, 70);
-      doc.text(`Moeda ${moeda}`, 10, 80);
-      doc.text(`Recalcular a cada ${recalculateDays} dias`, 10, 90);
-      doc.text(`Período ${periodInfo}`, 10, 100);
-      doc.text(`Meta atingida em ${targetDay} dias de operação`, 10, 110);
-      doc.text(`Banca final ${finalBank}`, 10, 120);
+      doc.text(`Dias ${days}`, 10, 20);
+      doc.text(`Operações por dia ${operationsPerDay}`, 10, 30);
+      doc.text(`Ticks por operação ${ticksPerOperation}`, 10, 40);
+      doc.text(`Meta ${targetValue.toFixed(2)}`, 10, 50);
+      doc.text(`Valor de 0.01 lote ${marginValue.toFixed(2)}`, 10, 60);
+      doc.text(`Moeda ${moeda}`, 10, 70);
+      doc.text(`Recalcular a cada ${recalculateDays} dias`, 10, 80);
+      doc.text(`Meta atingida em ${targetDay} dias de operação`, 10, 90);
+      doc.text(`Banca final ${finalBank}`, 10, 100);
 
       doc.autoTable({
         html: "#projectionTable",
-        startY: 130,
+        startY: 110,
         styles: {
           fontSize: 8
         },
@@ -848,55 +649,10 @@
       }
     }
 
-    // Função para verificar se uma data é dia útil (segunda a sexta)
-    function isBusinessDay(date) {
-      const day = date.getDay();
-      return day !== 0 && day !== 6; // 0 = domingo, 6 = sábado
-    }
-
-    // Função para formatar data
-    function formatDate(date) {
-      const year = date.getFullYear();
-      const month = String(date.getMonth() + 1).padStart(2, "0");
-      const day = String(date.getDate()).padStart(2, "0");
-      return `${day}/${month}/${year}`;
-    }
-
-    // Função para obter a próxima data útil
-    function getNextBusinessDay(date) {
-      const nextDay = new Date(date);
-      nextDay.setDate(nextDay.getDate() + 1);
-      
-      while (!isBusinessDay(nextDay)) {
-        nextDay.setDate(nextDay.getDate() + 1);
-      }
-      
-      return nextDay;
-    }
-
-    // Função para obter N dias úteis a partir de uma data
-    function getBusinessDaysFromDate(startDate, numDays) {
-      const result = [];
-      let currentDate = new Date(startDate);
-      
-      // Garantir que a data inicial seja um dia útil
-      if (!isBusinessDay(currentDate)) {
-        currentDate = getNextBusinessDay(currentDate);
-      }
-      
-      result.push(new Date(currentDate));
-      
-      while (result.length < numDays) {
-        currentDate = getNextBusinessDay(currentDate);
-        result.push(new Date(currentDate));
-      }
-      
-      return result;
-    }
-
     async function generateProjection() {
       showLoading();
       try {
+        const startDateInput = document.querySelector("#startDateInput");
         const moeda = document.querySelector("#moeda").value;
         const lotes = parseFloat(
           document.querySelector("#lotes").value
@@ -936,79 +692,83 @@
         let greenRowAdded = false;
         let targetAchievedDay = null;
 
-        // Obter a data de início do input
-        const startDateStr = startDateInput.value;
-        const startDateParts = startDateStr.split('/');
-        const startDate = new Date(
-          parseInt(startDateParts[2]), 
-          parseInt(startDateParts[1]) - 1, 
-          parseInt(startDateParts[0])
-        );
-        
-        // Calcular dias úteis a partir da data de início
-        businessDays = getBusinessDaysFromDate(startDate, days);
-        
-        // Atualizar informação de período
-        const endDate = businessDays[businessDays.length - 1];
-        document.querySelector("#periodInfo").textContent = 
-          `${formatDate(startDate)} até ${formatDate(endDate)}`;
-
+        // Start Date Logic
+        let startDate = startDateInput._flatpickr.selectedDates[0];
+        if (!startDate) {
+          startDate = new Date(); // Default to today if no date is selected
+        }
+        startDate = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate());
+        const endDate = new Date("2100-12-18T00:00:00");
+        let businessDays = 0;
+        let currentDate = new Date(startDate);
+        let dayCounter = 1;
         let today = new Date();
         let lastPassedDay = null;
         let daysWithCheckmark = 0;
 
-        for (let dayCounter = 1; dayCounter <= days; dayCounter++) {
-          const currentDate = businessDays[dayCounter - 1];
-          
-          const dailyProfit =
-            operationsPerDay * ticksPerOperation * tickValue * lotValue;
-          bank += dailyProfit;
+        while (currentDate <= endDate && dayCounter <= days) {
+          const dayOfWeek = currentDate.getDay();
+          if (dayOfWeek !== 0 && dayOfWeek !== 6) {
+            const dailyProfit =
+              operationsPerDay * ticksPerOperation * tickValue * lotValue;
+            bank += dailyProfit;
 
-          const row = document.createElement("tr");
+            const row = document.createElement("tr");
 
-          if (!greenRowAdded && bank >= targetValue) {
-            row.classList.add("green-row");
-            greenRowAdded = true;
-            targetAchievedDay = dayCounter;
-          }
+            if (!greenRowAdded && bank >= targetValue) {
+              row.classList.add("green-row");
+              greenRowAdded = true;
+              targetAchievedDay = dayCounter;
+            }
 
-          const formattedDate = formatDate(currentDate);
-          if (currentDate < today) {
-            row.classList.add("passed-day-row");
-            lastPassedDay = {
-              row: row,
-              day: dayCounter
+            const formatDate = (date) => {
+              const year = date.getFullYear();
+              const month = String(date.getMonth() + 1).padStart(2, "0");
+              const day = String(date.getDate()).padStart(2, "0");
+              return `${day}/${month}/${year}`;
             };
-            daysWithCheckmark++;
+
+            const formattedDate = formatDate(currentDate);
+            if (currentDate < today) {
+              row.classList.add("passed-day-row");
+              lastPassedDay = {
+                row: row,
+                day: dayCounter
+              };
+              daysWithCheckmark++;
+            }
+
+            if (
+              formatDate(currentDate) === formatDate(today) &&
+              !greenRowAdded
+            ) {
+              row.classList.add("current-day-row");
+            }
+
+            let dayDisplay = dayCounter;
+
+            const profitPerOperation = operationsPerDay > 0 ? (dailyProfit / operationsPerDay).toFixed(2) : "0.00";
+
+            const ticksDisplay = moeda === 'USDJPY' ? (ticksPerOperation / 10).toFixed(0) : ticksPerOperation;
+
+            row.innerHTML = `
+                <td>${dayDisplay}</td>
+                <td>${formattedDate}</td>
+                <td>${(bank - dailyProfit).toFixed(2)}</td>
+                <td>${dailyProfit.toFixed(2)}</td>
+                <td>${profitPerOperation}</td>
+                <td>${bank.toFixed(2)}</td>
+                <td>${dailyPercentage.toFixed(2)}%</td>
+                <td>${lotValue.toFixed(2)}</td>
+                <td>${operationsPerDay}</td>
+                <td>${ticksDisplay}</td>
+              `;
+
+            tableBody.appendChild(row);
+            businessDays++;
+            dayCounter++;
           }
-
-          if (
-            formatDate(currentDate) === formatDate(today) &&
-            !greenRowAdded
-          ) {
-            row.classList.add("current-day-row");
-          }
-
-          let dayDisplay = dayCounter;
-
-          const profitPerOperation = operationsPerDay > 0 ? (dailyProfit / operationsPerDay).toFixed(2) : "0.00";
-
-          const ticksDisplay = moeda === 'USDJPY' ? (ticksPerOperation / 10).toFixed(0) : ticksPerOperation;
-
-          row.innerHTML = `
-              <td>${dayDisplay}</td>
-              <td>${formattedDate}</td>
-              <td>${(bank - dailyProfit).toFixed(2)}</td>
-              <td>${dailyProfit.toFixed(2)}</td>
-              <td>${profitPerOperation}</td>
-              <td>${bank.toFixed(2)}</td>
-              <td>${dailyPercentage.toFixed(2)}%</td>
-              <td>${lotValue.toFixed(2)}</td>
-              <td>${operationsPerDay}</td>
-              <td>${ticksDisplay}</td>
-            `;
-
-          tableBody.appendChild(row);
+          currentDate.setDate(currentDate.getDate() + 1);
 
           if (dayCounter % 20 === 1 && dayCounter !== 1) {
             currentMonth += 1;
