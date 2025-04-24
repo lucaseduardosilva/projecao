@@ -378,10 +378,6 @@
           <span class="label">Meta batida com</span>
           <span class="value" id="targetAchievedDay">0 dias</span>
         </div>
-        <div class="info-item">
-          <span class="label">Dias operados</span>
-          <span class="value" id="daysOperated">0 dias</span>
-        </div>
       </div>
     </div>
 
@@ -397,7 +393,6 @@
           <thead>
             <tr>
               <th>Dia</th>
-<!--               <th>Data</th> -->
               <th>Banca Inicial</th>
               <th>Lucro do Dia</th>
               <th>Lucro por Operação</th>
@@ -610,15 +605,15 @@
 
             const formattedDate = formatDate(currentDate);
             let checkmark = "";
-            // if (currentDate < today) {
-            //   checkmark = "✔ ";
-            //   row.classList.add("passed-day-row");
-            //   lastPassedDay = {
-            //     row: row,
-            //     day: dayCounter
-            //   };
-            //   daysWithCheckmark++;
-            // }
+            if (currentDate < today) {
+              checkmark = "";
+              row.classList.add("passed-day-row");
+              lastPassedDay = {
+                row: row,
+                day: dayCounter
+              };
+              daysWithCheckmark++;
+            }
 
             if (
               formatDate(currentDate) === formatDate(today) &&
@@ -631,9 +626,8 @@
 
             const profitPerOperation = operationsPerDay > 0 ? (dailyProfit / operationsPerDay).toFixed(2) : "0.00";
 
-                // <td>${formattedDate}</td>
             row.innerHTML = `
-                <td>${checkmark}${dayDisplay}</td>
+                <td>${dayDisplay}</td>
                 <td>${(bank - dailyProfit).toFixed(2)}</td>
                 <td>${dailyProfit.toFixed(2)}</td>
                 <td>${profitPerOperation}</td>
@@ -682,8 +676,6 @@
           targetAchievedDay
             ? targetAchievedDay + " dias de operação"
             : "Meta não atingida";
-        document.querySelector("#daysOperated").textContent =
-          daysWithCheckmark - 1 + " dias";
       } finally {
         hideLoading();
       }
