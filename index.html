@@ -446,7 +446,7 @@
       );
       const finalBank =
         document.querySelector("#finalBankValue").textContent;
-      let ticksPerOperation = originalTicksValue;
+      let ticksPerOperation = moeda === 'USDJPY' ? (originalTicksValue / 10).toFixed(0) : originalTicksValue;
       const targetDay = parseInt(
         document.querySelector("#targetAchievedDay").textContent
       );
