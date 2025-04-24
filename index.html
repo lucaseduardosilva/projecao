@@ -8,6 +8,12 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.3.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.13/jspdf.plugin.autotable.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.css"
+    integrity="sha512-aOG0c6nPNzGg+5 warmJSPqtIS0NS5nzg60jbbKjqzJQQswGbJoMjHRiouStLLYtCqP0Hlql8Ncey1BacrIZtGg=="
+    crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <script src="https://code.jquery.com/jquery-3.6.0.js"></script>
+  <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.js"></script>
+
   <style>
     :root {
       --primary: #4361ee;
@@ -310,6 +316,36 @@
         transform: rotate(360deg);
       }
     }
+
+    .date-picker-group {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      margin-bottom: 1.5rem;
+    }
+
+    .date-picker-group label {
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      color: var(--gray-700);
+      font-size: 0.875rem;
+    }
+
+    #datepicker {
+      padding: 0.75rem;
+      border: 1px solid var(--gray-300);
+      border-radius: var(--border-radius);
+      font-size: 0.875rem;
+      transition: var(--transition);
+      color: var(--gray-800);
+      background-color: white;
+    }
+
+    #datepicker:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.15);
+    }
   </style>
 </head>
 
@@ -323,6 +359,11 @@
     <h2>Projeção de Banca</h2>
 
     <div class="card">
+      <div class="date-picker-group">
+        <label for="datepicker">Data Inicial</label>
+        <input type="text" id="datepicker" placeholder="Selecione a data inicial" readonly />
+      </div>
+
       <div class="input-grid">
         <div class="input-group">
           <label for="bankInput">Banca inicial (US$)</label>
@@ -397,6 +438,7 @@
           <thead>
             <tr>
               <th>Dia</th>
+              <th>Data</th>
               <th>Banca Inicial</th>
               <th>Lucro do Dia</th>
               <th>Lucro por Operação</th>
@@ -420,10 +462,27 @@
     const lotesInput = document.querySelector("#lotes");
     const moedaSelect = document.querySelector("#moeda");
     const bankInput = document.querySelector("#bankInput");
+    const datepickerInput = document.querySelector("#datepicker");
     let averageDolar = 0;
     let defaultMarginValue = 1.49;
     let originalTicksValue = 2000;
     let xauusdValues = {};
+    let initialDate = null;
+
+    $(function () {
+      $("#datepicker").datepicker({
+        dateFormat: "dd/mm/yy",
+        onSelect: function (dateText) {
+          initialDate = moment(dateText, "DD/MM/YYYY");
+          generateProjection();
+        },
+        beforeShowDay: function (date) {
+          var day = date.getDay();
+          return [(day != 0 && day != 6), ''];
+        }
+      });
+    });
+
 
     function exportToPDF() {
       const {
@@ -576,16 +635,36 @@
         let greenRowAdded = false;
         let targetAchievedDay = null;
 
-        const startDate = new Date("2025-04-22T00:00:00");
+
         const endDate = new Date("2100-12-18T00:00:00");
         let businessDays = 0;
-        let currentDate = new Date(startDate);
+        let currentDate = initialDate ? new Date(initialDate.format("YYYY-MM-DD")) : null;
         let dayCounter = 1;
         let today = new Date();
         let lastPassedDay = null;
         let daysWithCheckmark = 0;
 
-        while (currentDate <= endDate && dayCounter <= days) {
+        while (dayCounter <= days) {
+          if (!currentDate) {
+            const row = document.createElement("tr");
+            row.innerHTML = `
+                <td>${dayCounter}</td>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
+              `;
+            tableBody.appendChild(row);
+            dayCounter++;
+            continue;
+          }
+
+
           const dayOfWeek = currentDate.getDay();
           if (dayOfWeek !== 0 && dayOfWeek !== 6) {
             const dailyProfit =
@@ -632,6 +711,7 @@
 
             row.innerHTML = `
                 <td>${dayDisplay}</td>
+                <td>${formattedDate}</td>
                 <td>${(bank - dailyProfit).toFixed(2)}</td>
                 <td>${dailyProfit.toFixed(2)}</td>
                 <td>${profitPerOperation}</td>
@@ -645,6 +725,23 @@
             tableBody.appendChild(row);
             businessDays++;
             dayCounter++;
+          } else {
+            const row = document.createElement("tr");
+            row.innerHTML = `
+                <td>${dayCounter}</td>
+                <td>${formatDate(currentDate)}</td>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
+              `;
+            tableBody.appendChild(row);
+            dayCounter++;
+
           }
           currentDate.setDate(currentDate.getDate() + 1);
 
