@@ -6,11 +6,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Projeção de Banca</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.3.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.13/jspdf.plugin.autotable.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-  <script src="https://npmcdn.com/flatpickr/dist/l10n/pt.js"></script>
   <style>
     :root {
       --primary: #4361ee;
@@ -313,62 +310,6 @@
         transform: rotate(360deg);
       }
     }
-
-    /* Estilos para o Modal */
-    .modal {
-      display: none;
-      position: fixed;
-      z-index: 1;
-      left: 0;
-      top: 0;
-      width: 100%;
-      height: 100%;
-      overflow: auto;
-      background-color: rgba(0, 0, 0, 0.4);
-    }
-
-    .modal-content {
-      background-color: #fefefe;
-      margin: 15% auto;
-      padding: 20px;
-      border: 1px solid #888;
-      width: 80%;
-      max-width: 600px;
-    }
-
-    .close {
-      color: #aaa;
-      float: right;
-      font-size: 28px;
-      font-weight: bold;
-    }
-
-    .close:hover,
-    .close:focus {
-      color: black;
-      text-decoration: none;
-      cursor: pointer;
-    }
-
-    .date-picker-button {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      padding: 0.5rem 1rem;
-      background-color: var(--primary);
-      color: white;
-      border: none;
-      border-radius: var(--border-radius);
-      font-weight: 500;
-      font-size: 0.875rem;
-      cursor: pointer;
-      transition: var(--transition);
-      margin-top: 0.5rem;
-    }
-
-    .date-picker-button:hover {
-      background-color: var(--primary-dark);
-    }
   </style>
 </head>
 
@@ -382,11 +323,6 @@
     <h2>Projeção de Banca</h2>
 
     <div class="card">
-      <div class="input-group" style="width: 100%; margin-bottom: 1rem;">
-        <label for="startDateInput">Data Inicial</label>
-        <input type="text" id="startDateInput" class="flatpickr">
-      </div>
-
       <div class="input-grid">
         <div class="input-group">
           <label for="bankInput">Banca inicial (US$)</label>
@@ -447,10 +383,6 @@
           <span class="value" id="targetAchievedDay">0 dias</span>
         </div>
       </div>
-
-      <!-- Modal Calendar Button -->
-      <button id="openCalendarModal" class="date-picker-button">Abrir Calendário</button>
-
     </div>
 
     <div class="card table-card">
@@ -465,7 +397,6 @@
           <thead>
             <tr>
               <th>Dia</th>
-              <th>Data</th>
               <th>Banca Inicial</th>
               <th>Lucro do Dia</th>
               <th>Lucro por Operação</th>
@@ -482,33 +413,7 @@
     </div>
   </div>
 
-  <!-- Modal Structure -->
-  <div id="calendarModal" class="modal">
-    <div class="modal-content">
-      <span class="close">×</span>
-      <div id="calendar"></div>
-    </div>
-  </div>
-
   <script>
-    flatpickr.localize(flatpickr.l10ns.pt);
-
-    flatpickr("#startDateInput", {
-      dateFormat: "d/m/Y",
-      locale: "pt",
-      minDate: "today",
-      disable: [
-        function (date) {
-          // return true to disable
-          return (date.getDay() === 0 || date.getDay() === 6);
-
-        }
-      ],
-      onChange: function (selectedDates, dateStr, instance) {
-        generateProjection();
-      },
-    });
-
     const targetInputElement = document.getElementById("targetInput");
     const marginInput = document.querySelector("#marginInput");
     const ticksInput = document.querySelector("#ticksInput");
@@ -519,26 +424,6 @@
     let defaultMarginValue = 1.49;
     let originalTicksValue = 2000;
     let xauusdValues = {};
-
-    // Modal Calendar Logic
-    const modal = document.getElementById("calendarModal");
-    const btn = document.getElementById("openCalendarModal");
-    const span = document.getElementsByClassName("close")[0];
-
-    btn.onclick = function () {
-      modal.style.display = "block";
-    }
-
-    span.onclick = function () {
-      modal.style.display = "none";
-    }
-
-    window.onclick = function (event) {
-      if (event.target == modal) {
-        modal.style.display = "none";
-      }
-    }
-
 
     function exportToPDF() {
       const {
@@ -652,7 +537,6 @@
     async function generateProjection() {
       showLoading();
       try {
-        const startDateInput = document.querySelector("#startDateInput");
         const moeda = document.querySelector("#moeda").value;
         const lotes = parseFloat(
           document.querySelector("#lotes").value
@@ -692,12 +576,7 @@
         let greenRowAdded = false;
         let targetAchievedDay = null;
 
-        // Start Date Logic
-        let startDate = startDateInput._flatpickr.selectedDates[0];
-        if (!startDate) {
-          startDate = new Date(); // Default to today if no date is selected
-        }
-        startDate = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate());
+        const startDate = new Date("2025-04-22T00:00:00");
         const endDate = new Date("2100-12-18T00:00:00");
         let businessDays = 0;
         let currentDate = new Date(startDate);
@@ -753,7 +632,6 @@
 
             row.innerHTML = `
                 <td>${dayDisplay}</td>
-                <td>${formattedDate}</td>
                 <td>${(bank - dailyProfit).toFixed(2)}</td>
                 <td>${dailyProfit.toFixed(2)}</td>
                 <td>${profitPerOperation}</td>
@@ -917,16 +795,6 @@
     async function initialize() {
       showLoading();
       try {
-        // Inicializar tema
-        initTheme();
-        
-        // Inicializar calendário
-        initCalendar();
-        
-        // Definir data padrão
-        const today = new Date();
-        startDateInput.value = formatDate(today);
-        
         await fetchDollarRate();
         const margin = await fetchMargin(moedaSelect.value);
         marginInput.value =
