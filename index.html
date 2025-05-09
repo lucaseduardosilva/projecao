@@ -428,6 +428,7 @@
     let defaultMarginValue = 1.49;
     let originalTicksValue = 2000;
     let xauusdValues = {};
+    let selectedRows = new Set();
 
     function exportToPDF() {
       const {
@@ -588,7 +589,6 @@
         let today = new Date();
         let lastPassedDay = null;
         let daysWithCheckmark = 0;
-        let selectedRow = null;
 
         while (currentDate <= endDate && dayCounter <= days) {
           const dayOfWeek = currentDate.getDay();
@@ -598,16 +598,16 @@
             bank += dailyProfit;
 
             const row = document.createElement("tr");
+            row.dataset.day = dayCounter;
 
             row.addEventListener('click', () => {
-              if (selectedRow) {
-                selectedRow.classList.remove('selected-row');
-              }
-              if (selectedRow !== row) {
-                row.classList.add('selected-row');
-                selectedRow = row;
+              const day = row.dataset.day;
+              if (selectedRows.has(day)) {
+                selectedRows.delete(day);
+                row.classList.remove('selected-row');
               } else {
-                selectedRow = null;
+                selectedRows.add(day);
+                row.classList.add('selected-row');
               }
             });
 
