@@ -154,9 +154,9 @@
     }
 
     @media (max-width: 768px) {
-    .info-grid {
+      .info-grid {
         flex-direction: column;
-    }
+      }
     }
 
     .info-item {
@@ -351,7 +351,7 @@
           <label for="moeda">Moeda</label>
           <select name="moeda" id="moeda">
             <option value="XAUUSD">XAUUSD</option>
-            <option value="USDJPY">USDJPY</option>
+<!--             <option value="USDJPY">USDJPY</option> -->
           </select>
         </div>
         <div class="input-group">
@@ -385,13 +385,13 @@
           <span class="label">Banca Final</span>
           <span class="value" id="finalBankValue">$0.00</span>
         </div>
-        <!-- <div class="info-item">
-          <span class="label">% de Lucro Diário</span>
-          <span class="value" id="dailyProfitPercentage">0%</span>
-        </div> -->
         <div class="info-item">
           <span class="label">Meta batida com</span>
           <span class="value" id="targetAchievedDay">0 dias</span>
+        </div>
+        <div class="info-item">
+          <span class="label">Lotes Máximos</span>
+          <span class="value" id="maxLotesValue">0</span>
         </div>
       </div>
     </div>
@@ -414,6 +414,7 @@
               <th>Banca Total</th>
               <th>Meta %</th>
               <th>Lote</th>
+              <th>Lotes Máximos</th>
               <th>Operações</th>
               <th>Ticks</th>
             </tr>
@@ -476,10 +477,11 @@
       doc.text(`Recalcular a cada ${recalculateDays} dias`, 10, 80);
       doc.text(`Meta atingida em ${targetDay} dias de operação`, 10, 90);
       doc.text(`Banca final ${finalBank}`, 10, 100);
+      doc.text(`Lotes Máximos ${lotes}`, 10, 110);
 
       doc.autoTable({
         html: "#projectionTable",
-        startY: 110,
+        startY: 120,
         styles: {
           fontSize: 8
         },
@@ -662,6 +664,7 @@
                 <td>${bank.toFixed(2)}</td>
                 <td>${dailyPercentage.toFixed(2)}%</td>
                 <td>${currentLotValue.toFixed(2)}</td>
+                <td>${maxLotValue.toFixed(2)}</td>
                 <td>${operationsPerDay}</td>
                 <td>${ticksDisplay}</td>
               `;
@@ -694,6 +697,8 @@
           targetAchievedDay
             ? targetAchievedDay + " dias de operação"
             : "Meta não atingida";
+
+        document.querySelector("#maxLotesValue").textContent = lotes.toFixed(2);
 
         //Calculate daily Percentage
         let dailyPercentageTotal = ((operationsPerDay * ticksPerOperation * tickValue * currentLotValue) / initialBank) * 100;
