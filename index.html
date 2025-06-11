@@ -389,10 +389,6 @@
           <span class="label">Meta batida com</span>
           <span class="value" id="targetAchievedDay">0 dias</span>
         </div>
-        <div class="info-item">
-          <span class="label">Lotes Máximos</span>
-          <span class="value" id="maxLotesValue">0</span>
-        </div>
       </div>
     </div>
 
@@ -414,7 +410,6 @@
               <th>Banca Total</th>
               <th>Meta %</th>
               <th>Lote</th>
-              <th>Lotes Máximos</th>
               <th>Operações</th>
               <th>Ticks</th>
             </tr>
@@ -477,7 +472,6 @@
       doc.text(`Recalcular a cada ${recalculateDays} dias`, 10, 80);
       doc.text(`Meta atingida em ${targetDay} dias de operação`, 10, 90);
       doc.text(`Banca final ${finalBank}`, 10, 100);
-      doc.text(`Lotes Máximos ${lotes}`, 10, 110);
 
       doc.autoTable({
         html: "#projectionTable",
