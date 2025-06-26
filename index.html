@@ -605,7 +605,8 @@
             bank = lastDayBank;
             let dailyProfit = 0;
             const dayInitialBank = bank;
-            let lotUsed = 0.01;
+            let lotUsedFirstOperation = 0.01;
+            let lotUsedLastOperation = 0.01;
 
 
             const row = document.createElement("tr");
@@ -622,7 +623,7 @@
                 row.classList.add('selected-row');
                 let currentBank = dayInitialBank;
 
-                const operationRows = []; // Array para armazenar as rows de operação
+                const operationRows = [];
 
                 for (let op = 1; op <= operationsPerDay; op++) {
                   const operationRow = document.createElement("tr");
@@ -636,7 +637,6 @@
                   const operationProfit = ticksPerOperation * tickValue * operationLotValue;
                   currentBank += operationProfit;
 
-
                   operationRow.innerHTML = `
                       <td></td>
                       <td></td>
@@ -647,10 +647,9 @@
                       <td>${operationProfit.toFixed(2)}</td>
 
                   `;
-                  operationRows.push(operationRow); // Adiciona a row ao array
+                  operationRows.push(operationRow);
                 }
 
-                // Insere as rows em ordem inversa
                 for (let i = operationRows.length - 1; i >= 0; i--) {
                   tableBody.insertBefore(operationRows[i], row.nextSibling);
                 }
@@ -694,15 +693,27 @@
             for (let op = 1; op <= operationsPerDay; op++) {
 
               let maxPossibleLot = Math.floor(bank / marginValue) * 0.01;
-              lotUsed = Math.max(0.01, Math.min(maxLotValue, maxPossibleLot));
+              let lotUsed = Math.max(0.01, Math.min(maxLotValue, maxPossibleLot));
               const operationProfit = ticksPerOperation * tickValue * lotUsed;
               bank += operationProfit;
               dailyProfitValue += operationProfit;
+
+              if (op === 1) {
+                lotUsedFirstOperation = lotUsed;
+              }
+              if (op === operationsPerDay) {
+                lotUsedLastOperation = lotUsed;
+              }
             }
 
             const profitPerOperation = operationsPerDay > 0 ? (dailyProfitValue / operationsPerDay).toFixed(2) : "0.00";
             const ticksDisplay = moeda === 'USDJPY' ? (ticksPerOperation / 10).toFixed(0) : ticksPerOperation;
-            const dailyPercentage = ((operationsPerDay * ticksPerOperation * tickValue * lotUsed) / dayInitialBank) * 100;
+            const dailyPercentage = (dailyProfitValue / dayInitialBank) * 100;
+
+            let lotRange = lotUsedFirstOperation.toFixed(2);
+            if (lotUsedFirstOperation !== lotUsedLastOperation) {
+              lotRange += " até " + lotUsedLastOperation.toFixed(2);
+            }
 
             row.innerHTML = `
                 <td>${dayDisplay}</td>
@@ -712,7 +723,7 @@
                 <td>${bank.toFixed(2)}</td>
                 <td>${dailyPercentage.toFixed(2)}%</td>
                 <td>${operationsPerDay}</td>
-                <td>${lotUsed.toFixed(2)}</td>
+                <td>${lotRange}</td>
                 <td>${ticksDisplay}</td>
               `;
 
