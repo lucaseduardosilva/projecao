@@ -321,6 +321,15 @@
     .selected-row td {
       background-color: var(--primary-light) !important;
     }
+
+    .operation-row {
+      background-color: var(--gray-50);
+    }
+
+    .operation-row td {
+      padding-left: 2rem;
+      font-size: 0.75rem;
+    }
   </style>
 </head>
 
@@ -351,7 +360,6 @@
           <label for="moeda">Moeda</label>
           <select name="moeda" id="moeda">
             <option value="XAUUSD">XAUUSD</option>
-<!--             <option value="USDJPY">USDJPY</option> -->
           </select>
         </div>
         <div class="input-group">
@@ -371,8 +379,8 @@
           <input type="number" id="lotes" value="200" />
         </div>
         <div class="input-group larger-field">
-          <label for="recalculateDaysInput">Recalcular a cada (dias)</label>
-          <input type="number" id="recalculateDaysInput" value="1" min="1" />
+          <label for="recalculateOperationsInput">Recalcular a cada (operações)</label>
+          <input type="number" id="recalculateOperationsInput" value="1" min="1" />
         </div>
       </div>
 
@@ -409,8 +417,8 @@
               <th>Lucro por Operação</th>
               <th>Banca Total</th>
               <th>Meta %</th>
+              <th>Operação</th>
               <th>Lote</th>
-              <th>Operações</th>
               <th>Ticks</th>
             </tr>
           </thead>
@@ -427,6 +435,8 @@
     const lotesInput = document.querySelector("#lotes");
     const moedaSelect = document.querySelector("#moeda");
     const bankInput = document.querySelector("#bankInput");
+    const recalculateOperationsInput = document.querySelector("#recalculateOperationsInput");
+
     let averageDolar = 0;
     let defaultMarginValue = 1.49;
     let originalTicksValue = 2000;
@@ -459,7 +469,7 @@
         document.querySelector("#targetAchievedDay").textContent
       );
       const marginValue = parseFloat(marginInput.value);
-      const recalculateDays = parseInt(document.querySelector("#recalculateDaysInput").value);
+      const recalculateOperations = parseInt(recalculateOperationsInput.value);
 
       doc.setFontSize(10);
       doc.text(`Banca inicial ${initialBank.toFixed(2)}`, 10, 10);
@@ -469,7 +479,7 @@
       doc.text(`Meta ${targetValue.toFixed(2)}`, 10, 50);
       doc.text(`Valor de 0.01 lote ${marginValue.toFixed(2)}`, 10, 60);
       doc.text(`Moeda ${moeda}`, 10, 70);
-      doc.text(`Recalcular a cada ${recalculateDays} dias`, 10, 80);
+      doc.text(`Recalcular a cada ${recalculateOperations} operações`, 10, 80);
       doc.text(`Meta atingida em ${targetDay} dias de operação`, 10, 90);
       doc.text(`Banca final ${finalBank}`, 10, 100);
 
@@ -549,7 +559,7 @@
         const lotes = parseFloat(
           document.querySelector("#lotes").value
         );
-        const initialBank = parseFloat(
+        let initialBank = parseFloat(
           document.querySelector("#bankInput").value
         );
         const days = parseInt(document.querySelector("#daysInput").value);
@@ -564,9 +574,10 @@
         let ticksPerOperation = originalTicksValue;
         let bank = initialBank;
         const maxLotValue = lotes;
-        const recalculateDays = parseInt(document.querySelector("#recalculateDaysInput").value) || 1;
+        const recalculateOperations = parseInt(recalculateOperationsInput.value) || 1;
 
-        let currentLotValue = 0;
+        let currentLotValue = 0.01;
+        let operationsCounter = 0;
 
         let currentMonth = 1;
         const tableBody = document.querySelector("#projectionTable tbody");
@@ -584,20 +595,18 @@
         let lastPassedDay = null;
         let daysWithCheckmark = 0;
 
+        let lastDayBank = initialBank;
+
         while (currentDate <= endDate && dayCounter <= days) {
           const dayOfWeek = currentDate.getDay();
           if (dayOfWeek !== 0 && dayOfWeek !== 6) {
 
-            if (dayCounter % recalculateDays === 1 || recalculateDays === 1) {
-              currentLotValue = Math.min(
-                maxLotValue,
-                Math.floor(bank / marginValue) * 0.01
-              );
-            }
+            operationsCounter = 0;
+            bank = lastDayBank;
+            let dailyProfit = 0;
+            const dayInitialBank = bank;
+            let lotUsed = 0.01;
 
-            const dailyProfit =
-              operationsPerDay * ticksPerOperation * tickValue * currentLotValue;
-            bank += dailyProfit;
 
             const row = document.createElement("tr");
             row.dataset.day = dayCounter;
@@ -607,9 +616,45 @@
               if (selectedRows.has(day)) {
                 selectedRows.delete(day);
                 row.classList.remove('selected-row');
+                document.querySelectorAll(`tr[data-parent-day="${day}"]`).forEach(el => el.remove());
               } else {
                 selectedRows.add(day);
                 row.classList.add('selected-row');
+                let currentBank = dayInitialBank;
+
+                const operationRows = []; // Array para armazenar as rows de operação
+
+                for (let op = 1; op <= operationsPerDay; op++) {
+                  const operationRow = document.createElement("tr");
+                  operationRow.classList.add("operation-row");
+                  operationRow.dataset.parentDay = day;
+
+                  let operationLotValue = 0.01;
+                  let maxPossibleLot = Math.floor(currentBank / marginValue) * 0.01;
+                  operationLotValue = Math.max(0.01, Math.min(maxLotValue, maxPossibleLot));
+
+                  const operationProfit = ticksPerOperation * tickValue * operationLotValue;
+                  currentBank += operationProfit;
+
+
+                  operationRow.innerHTML = `
+                      <td></td>
+                      <td></td>
+                      <td></td>
+                      <td>Operação ${op}</td>
+                      <td>${operationLotValue.toFixed(2)}</td>
+                      <td>${ticksPerOperation}</td>
+                      <td>${operationProfit.toFixed(2)}</td>
+
+                  `;
+                  operationRows.push(operationRow); // Adiciona a row ao array
+                }
+
+                // Insere as rows em ordem inversa
+                for (let i = operationRows.length - 1; i >= 0; i--) {
+                  tableBody.insertBefore(operationRows[i], row.nextSibling);
+                }
+
               }
             });
 
@@ -644,27 +689,38 @@
             }
 
             let dayDisplay = dayCounter;
+            let dailyProfitValue = 0;
 
-            const profitPerOperation = operationsPerDay > 0 ? (dailyProfit / operationsPerDay).toFixed(2) : "0.00";
+            for (let op = 1; op <= operationsPerDay; op++) {
 
+              let maxPossibleLot = Math.floor(bank / marginValue) * 0.01;
+              lotUsed = Math.max(0.01, Math.min(maxLotValue, maxPossibleLot));
+              const operationProfit = ticksPerOperation * tickValue * lotUsed;
+              bank += operationProfit;
+              dailyProfitValue += operationProfit;
+            }
+
+            const profitPerOperation = operationsPerDay > 0 ? (dailyProfitValue / operationsPerDay).toFixed(2) : "0.00";
             const ticksDisplay = moeda === 'USDJPY' ? (ticksPerOperation / 10).toFixed(0) : ticksPerOperation;
-            const dailyPercentage = ((operationsPerDay * ticksPerOperation * tickValue * currentLotValue) / (bank - dailyProfit)) * 100;
+            const dailyPercentage = ((operationsPerDay * ticksPerOperation * tickValue * lotUsed) / dayInitialBank) * 100;
 
             row.innerHTML = `
                 <td>${dayDisplay}</td>
-                <td>${(bank - dailyProfit).toFixed(2)}</td>
-                <td>${dailyProfit.toFixed(2)}</td>
+                <td>${dayInitialBank.toFixed(2)}</td>
+                <td>${dailyProfitValue.toFixed(2)}</td>
                 <td>${profitPerOperation}</td>
                 <td>${bank.toFixed(2)}</td>
                 <td>${dailyPercentage.toFixed(2)}%</td>
-                <td>${currentLotValue.toFixed(2)}</td>
                 <td>${operationsPerDay}</td>
+                <td>${lotUsed.toFixed(2)}</td>
                 <td>${ticksDisplay}</td>
               `;
 
             tableBody.appendChild(row);
             businessDays++;
             dayCounter++;
+
+            lastDayBank = bank;
           }
           currentDate.setDate(currentDate.getDate() + 1);
 
@@ -693,8 +749,7 @@
 
         document.querySelector("#maxLotesValue").textContent = lotes.toFixed(2);
 
-        //Calculate daily Percentage
-        let dailyPercentageTotal = ((operationsPerDay * ticksPerOperation * tickValue * currentLotValue) / initialBank) * 100;
+        let dailyPercentageTotal = ((operationsPerDay * ticksPerOperation * tickValue * lotUsed) / initialBank) * 100;
         let dailyPercentageTotal2 = dailyPercentageTotal.toFixed(2);
         document.querySelector("#dailyProfitPercentage").textContent = dailyPercentageTotal2 + "%";
       } finally {
@@ -804,7 +859,7 @@
       .querySelector("#targetInput")
       .addEventListener("input", generateProjection);
     document
-      .querySelector("#recalculateDaysInput")
+      .querySelector("#recalculateOperationsInput")
       .addEventListener("input", generateProjection);
 
     let usdToBrlCreateDate;
