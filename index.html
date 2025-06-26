@@ -12,8 +12,8 @@
   <style>
     :root {
       --primary: #4361ee;
-      --primary-light: #4895ef;
-      --primary-dark: #3f37c9;
+      --primary-light: #c0c0c0;
+      --primary-dark: #808080;
       --success: #4cc9f0;
       --success-light: #d4edda;
       --warning: #f8961e;
@@ -607,7 +607,8 @@
             const dayInitialBank = bank;
             let lotUsedFirstOperation = 0.01;
             let lotUsedLastOperation = 0.01;
-
+            let profitFirstOperation = 0;
+            let profitLastOperation = 0;
 
             const row = document.createElement("tr");
             row.dataset.day = dayCounter;
@@ -638,13 +639,15 @@
                   currentBank += operationProfit;
 
                   operationRow.innerHTML = `
-                      <td></td>
-                      <td></td>
-                      <td></td>
-                      <td>Operação ${op}</td>
-                      <td>${operationLotValue.toFixed(2)}</td>
-                      <td>${ticksPerOperation}</td>
-                      <td>${operationProfit.toFixed(2)}</td>
+                      <td style="background-color: #f2f2f2;">Operação ${op}</td>
+                      <td style="background-color: #f2f2f2;"></td>
+                      <td style="background-color: #f2f2f2;"></td>
+                      <td style="background-color: #f2f2f2;">${operationProfit.toFixed(2)}</td>
+                      <td style="background-color: #f2f2f2;"></td>
+                      <td style="background-color: #f2f2f2;"></td>
+                      <td style="background-color: #f2f2f2;"></td>
+                      <td style="background-color: #f2f2f2;">${operationLotValue.toFixed(2)}</td>
+                      <td style="background-color: #f2f2f2;">${ticksPerOperation}</td>
 
                   `;
                   operationRows.push(operationRow);
@@ -700,13 +703,18 @@
 
               if (op === 1) {
                 lotUsedFirstOperation = lotUsed;
+                profitFirstOperation = operationProfit;
               }
               if (op === operationsPerDay) {
                 lotUsedLastOperation = lotUsed;
+                profitLastOperation = operationProfit;
               }
             }
 
-            const profitPerOperation = operationsPerDay > 0 ? (dailyProfitValue / operationsPerDay).toFixed(2) : "0.00";
+            let profitPerOperation = profitFirstOperation.toFixed(2);
+            if (profitFirstOperation !== profitLastOperation) {
+              profitPerOperation += " até " + profitLastOperation.toFixed(2);
+            }
             const ticksDisplay = moeda === 'USDJPY' ? (ticksPerOperation / 10).toFixed(0) : ticksPerOperation;
             const dailyPercentage = (dailyProfitValue / dayInitialBank) * 100;
 
@@ -872,7 +880,6 @@
     document
       .querySelector("#recalculateOperationsInput")
       .addEventListener("input", generateProjection);
-
     let usdToBrlCreateDate;
 
     async function initialize() {
