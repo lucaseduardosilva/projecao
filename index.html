@@ -580,6 +580,7 @@
                 ticksHeader: "Ticks",
                 loadingText: "Carregando...",
                 operationText: "Operação",
+                totalText: "Total",
                 targetNotAchieved: "Meta não atingida",
                 daysOfOperation: "dias de operação"
             },
@@ -610,6 +611,7 @@
                 ticksHeader: "Ticks",
                 loadingText: "Loading...",
                 operationText: "Operation",
+                totalText: "Total",
                 targetNotAchieved: "Target not achieved",
                 daysOfOperation: "days of operation"
             },
@@ -640,6 +642,7 @@
                 ticksHeader: "Ticks",
                 loadingText: "Cargando...",
                 operationText: "Operación",
+                totalText: "Total",
                 targetNotAchieved: "Meta no alcanzada",
                 daysOfOperation: "días de operación"
             },
@@ -670,6 +673,7 @@
                 ticksHeader: "Ticks",
                 loadingText: "Chargement...",
                 operationText: "Opération",
+                totalText: "Total",
                 targetNotAchieved: "Objectif non atteint",
                 daysOfOperation: "jours d'opération"
             },
@@ -700,6 +704,7 @@
                 ticksHeader: "Ticks",
                 loadingText: "Laden...",
                 operationText: "Operation",
+                totalText: "Gesamt",
                 targetNotAchieved: "Ziel nicht erreicht",
                 daysOfOperation: "Handelstage"
             },
@@ -730,6 +735,7 @@
                 ticksHeader: "Ticks",
                 loadingText: "Caricamento...",
                 operationText: "Operazione",
+                totalText: "Totale",
                 targetNotAchieved: "Obiettivo non raggiunto",
                 daysOfOperation: "giorni di operazione"
             },
@@ -760,6 +766,7 @@
                 ticksHeader: "Тики",
                 loadingText: "Загрузка...",
                 operationText: "Операция",
+                totalText: "Итого",
                 targetNotAchieved: "Цель не достигнута",
                 daysOfOperation: "дней торговли"
             },
@@ -790,6 +797,7 @@
                 ticksHeader: "点数",
                 loadingText: "加载中...",
                 operationText: "操作",
+                totalText: "总计",
                 targetNotAchieved: "目标未达成",
                 daysOfOperation: "个交易日"
             }
@@ -1054,6 +1062,8 @@
                                 let currentBank = dayInitialBank;
 
                                 const operationRows = [];
+                                let totalProfit = 0;
+                                const t = translations[currentLanguage];
 
                                 for (let op = 1; op <= operationsPerDay; op++) {
                                     const operationRow = document.createElement("tr");
@@ -1066,9 +1076,9 @@
 
                                     const operationProfit = ticksPerOperation * tickValue * operationLotValue;
                                     currentBank += operationProfit;
-
+                                    totalProfit += operationProfit;
                                     operationRow.innerHTML = `
-                      <td style="background-color: #f2f2f2;">Operação ${op}</td>
+                      <td style="background-color: #f2f2f2;">${t.operationText} ${op}</td>
                       <td style="background-color: #f2f2f2;"></td>
                       <td style="background-color: #f2f2f2;"></td>
                       <td style="background-color: #f2f2f2;">${operationProfit.toFixed(2)}</td>
@@ -1077,9 +1087,27 @@
                       <td style="background-color: #f2f2f2;"></td>
                       <td style="background-color: #f2f2f2;">${operationLotValue.toFixed(2)}</td>
                       <td style="background-color: #f2f2f2;">${ticksPerOperation}</td>
-
                   `;
                                     operationRows.push(operationRow);
+                                }
+
+                                // Adicionar linha de total apenas se houver mais de uma operação
+                                if (operationsPerDay > 1) {
+                                    const totalRow = document.createElement("tr");
+                                    totalRow.classList.add("operation-row");
+                                    totalRow.dataset.parentDay = day;
+                                    totalRow.innerHTML = `
+                      <td style="background-color: #f2f2f2;">${t.totalText}</td>
+                      <td style="background-color: #f2f2f2;"></td>
+                      <td style="background-color: #f2f2f2;"></td>
+                      <td style="background-color: #f2f2f2;">${totalProfit.toFixed(2)}</td>
+                      <td style="background-color: #f2f2f2;"></td>
+                      <td style="background-color: #f2f2f2;"></td>
+                      <td style="background-color: #f2f2f2;"></td>
+                      <td style="background-color: #f2f2f2;"></td>
+                      <td style="background-color: #f2f2f2;"></td>
+                  `;
+                                    operationRows.push(totalRow);
                                 }
 
                                 for (let i = operationRows.length - 1; i >= 0; i--) {
