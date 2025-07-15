@@ -332,10 +332,22 @@
         }
 
         .language-selector {
+            display: flex;
+            flex-direction: row;
+            align-items: flex-start;
+            gap: 16px;
             position: fixed;
             top: 1rem;
             right: 1rem;
             z-index: 100;
+        }
+
+        @media (max-width: 600px) {
+            .language-selector {
+                flex-direction: column;
+                align-items: flex-end;
+                gap: 16px;
+            }
         }
 
         .language-btn {
@@ -395,11 +407,145 @@
             height: 15px;
             border-radius: 2px;
         }
+
+        .theme-toggle-btn {
+            background: var(--gray-200);
+            color: var(--gray-800);
+            border: none;
+            border-radius: var(--border-radius);
+            padding: 0.5rem 0.8rem;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .theme-toggle-btn:hover {
+            background: var(--primary-light);
+        }
+
+        body.dark-theme {
+            background-color: #181A1B;
+            color: #fff;
+        }
+
+        body.dark-theme .card,
+        body.dark-theme .table-card {
+            background-color: #23262A;
+            color: #fff;
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.25);
+        }
+
+        body.dark-theme h2,
+        body.dark-theme .table-title,
+        body.dark-theme th {
+            color: #fff;
+        }
+
+        body.dark-theme .input-group label,
+        body.dark-theme .info-item .label {
+            color: #bdbdbd;
+        }
+
+        body.dark-theme .input-group input,
+        body.dark-theme .input-group select {
+            background-color: #23262A;
+            color: #fff;
+            border: 1px solid #333;
+        }
+
+        body.dark-theme .input-group input:focus,
+        body.dark-theme .input-group select:focus {
+            border-color: #4cc9f0;
+            box-shadow: 0 0 0 3px rgba(76, 201, 240, 0.15);
+        }
+
+        body.dark-theme .export-btn,
+        body.dark-theme .language-btn,
+        body.dark-theme .theme-toggle-btn {
+            background-color: #23262A;
+            color: #fff;
+            border: 1px solid #333;
+        }
+
+        body.dark-theme .export-btn:hover,
+        body.dark-theme .language-btn:hover,
+        body.dark-theme .theme-toggle-btn:hover {
+            background-color: #181A1B;
+        }
+
+        body.dark-theme .language-dropdown {
+            background-color: #23262A;
+            color: #fff;
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.25);
+        }
+
+        body.dark-theme .language-option {
+            color: #fff;
+        }
+
+        body.dark-theme .language-option.active {
+            background-color: #181A1B;
+            color: #4cc9f0;
+        }
+
+        body.dark-theme th {
+            background-color: #23262A;
+            color: #bdbdbd;
+        }
+
+        body.dark-theme td {
+            color: #fff;
+            background-color: #23262A;
+        }
+
+        body.dark-theme tr.green-row td {
+            background-color: #22336b !important;
+            color: #fff;
+        }
+
+        body.dark-theme tr.current-day-row td {
+            background-color: #222b3a !important;
+        }
+
+        body.dark-theme tr.passed-day-row td,
+        body.dark-theme tr.last-passed-day-row td {
+            background-color: #23262A !important;
+            color: #bdbdbd;
+        }
+
+        body.dark-theme .operation-row td {
+            background-color: #23262A !important;
+            color: #bdbdbd;
+        }
+
+        body.dark-theme .info-item .value {
+            color: #fff;
+        }
+
+        body.dark-theme .loader {
+            border: 5px solid #23262A;
+            border-top: 5px solid #4cc9f0;
+        }
+
+        body.dark-theme .table-header {
+            background-color: #23262A;
+            border-bottom: 1px solid #333;
+        }
+
+        body.dark-theme .table-container {
+            background-color: #23262A;
+        }
     </style>
 </head>
 
 <body>
     <div class="language-selector">
+        <button class="theme-toggle-btn" id="themeToggleBtn" onclick="toggleTheme()" title="Alternar tema">
+            <span id="themeIcon">🌙</span>
+        </button>
         <button class="language-btn" onclick="toggleLanguageDropdown()">
             <span class="flag">🇧🇷</span>
             <span id="currentLanguage">Português</span>
@@ -1419,6 +1565,31 @@
                 dropdown.classList.remove('show');
             }
         });
+
+        // Tema escuro/claro
+        function setTheme(theme) {
+            if (theme === 'dark') {
+                document.body.classList.add('dark-theme');
+                document.getElementById('themeIcon').textContent = '☀️';
+            } else {
+                document.body.classList.remove('dark-theme');
+                document.getElementById('themeIcon').textContent = '🌙';
+            }
+            localStorage.setItem('theme', theme);
+        }
+        function toggleTheme() {
+            const isDark = document.body.classList.contains('dark-theme');
+            setTheme(isDark ? 'light' : 'dark');
+        }
+        // Carregar tema salvo
+        (function () {
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme === 'dark') {
+                setTheme('dark');
+            } else {
+                setTheme('light');
+            }
+        })();
     </script>
 </body>
 
