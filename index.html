@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="pt-br">
 
@@ -1006,8 +1007,8 @@
         const dayInitialBank = bank;
         let dayOperationsBank = bank;
         let lotUsedFirstOperation = 0;
-        let profitFirstOperation = 0;
         let lotUsedLastOperation = 0;
+        let profitFirstOperation = 0;
         let profitLastOperation = 0;
         let operationDetails = [];
 
@@ -1065,31 +1066,19 @@
           lotRangeText,
           ticksDisplay
         ]);
-              
-        if (operationsPerDay > 1) {
-          let totalOpProfit = 0;
-          operationDetails.forEach((detail, index) => {
-            body.push([
-              `${t.operationText} ${index + 1}`,
-              '', '',
-              detail.profit.toFixed(2),
-              '', '', '', '',
-              detail.lot.toFixed(2),
-              ticksDisplay
-            ]);
-            totalOpProfit += detail.profit;
-          });
 
+        let totalOpProfit = 0;
+        operationDetails.forEach((detail, index) => {
           body.push([
-            t.totalText,
+            `${t.operationText} ${index + 1}`,
             '', '',
-            totalOpProfit.toFixed(2),
-            '', '', '', '', '', ''
+            detail.profit.toFixed(2),
+            '', '', '', '',
+            detail.lot.toFixed(2),
+            ticksDisplay
           ]);
-        }
-        
-        dayCounter++;
-      }
+          totalOpProfit += detail.profit;
+        });
 
         if (operationsPerDay > 1) {
           body.push([
