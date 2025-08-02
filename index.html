@@ -958,19 +958,10 @@
     };
 
     function exportToPDF() {
-      const { jsPDF } = window.jspdf;
+      const {
+        jsPDF
+      } = window.jspdf;
       const doc = new jsPDF();
-
-      const convertForPDF = (text) => {
-        if (currentLanguage === 'ru') {
-          const russianMap = { 'Проекция Банка': 'Bank Projection', 'Начальный банк': 'Initial Bank', 'Дни': 'Days', 'Операции': 'Operations', 'Валюта': 'Currency', 'Тики за операцию': 'Ticks per operation', 'Цель': 'Target', 'Маржа для 0.01 лота': 'Margin for 0.01 lot', 'Лоты': 'Lots', 'Пересчитывать каждые': 'Recalculate every', 'Период': 'Period', 'Финальный банк': 'Final Bank', 'Цель достигнута за': 'Target achieved with', 'Ежедневная проекция': 'Daily Projection', 'Экспорт в PDF': 'Export to PDF', 'День': 'Day', 'Дневная прибыль': 'Daily Profit', 'Прибыль за операцию': 'Profit per Operation', 'Общий банк': 'Total Bank', 'Общий банк (BRL)': 'Total Bank (BRL)', 'Цель %': 'Target %', 'Лот': 'Lot', 'Тики': 'Ticks', 'Загрузка': 'Loading', 'Операция': 'Operation', 'Цель не достигнута': 'Target not achieved', 'дней торговли': 'trading days' };
-          return russianMap[text] || text;
-        } else if (currentLanguage === 'zh') {
-          const chineseMap = { '银行预测': 'Bank Projection', '初始资金': 'Initial Bank', '天数': 'Days', '操作': 'Operations', '货币': 'Currency', '每次操作点数': 'Ticks per operation', '目标': 'Target', '0.01手保证金': 'Margin for 0.01 lot', '手数': 'Lots', '每(操作)重新计算': 'Recalculate every (operations)', '期间': 'Period', '最终资金': 'Final Bank', '目标达成于': 'Target achieved with', '每日预测': 'Daily Projection', '导出为PDF': 'Export to PDF', '天': 'Day', '日利润': 'Daily Profit', '每次操作利润': 'Profit per Operation', '总资金': 'Total Bank', '总资金 (BRL)': 'Total Bank (BRL)', '目标%': 'Target %', '手': 'Lot', '点数': 'Ticks', '加载中': 'Loading', '操作': 'Operation', '目标未达成': 'Target not achieved', '个交易日': 'trading days' };
-          return chineseMap[text] || text;
-        }
-        return text;
-      };
 
       const t = translations[currentLanguage];
       const moeda = document.querySelector("#moeda").value;
@@ -979,51 +970,156 @@
       const days = parseInt(document.querySelector("#daysInput").value);
       const operationsPerDay = parseInt(document.querySelector("#operationsInput").value);
       const targetValue = parseFloat(document.querySelector("#targetInput").value);
-      let ticksPerOperation = moeda === 'USDJPY' ? (originalTicksValue / 10).toFixed(0) : originalTicksValue;
-      const targetDay = document.querySelector("#targetAchievedDay").textContent;
       const marginValue = parseFloat(marginInput.value);
-      const recalculateOperations = parseInt(recalculateOperationsInput.value);
+      const recalculateOperations = parseInt(recalculateOperationsInput.value) || 1;
       const finalBank = document.querySelector("#finalBankValue").textContent;
+      const targetDay = document.querySelector("#targetAchievedDay").textContent;
+      const ticksPerOperation = originalTicksValue;
+      const tickValue = moeda === "XAUUSD" ? 0.1 : 0.01;
+      const maxLotValue = lotes;
 
       doc.setFontSize(10);
-      doc.text(`${convertForPDF(t.bankLabel)} ${initialBank.toFixed(2)}`, 10, 10);
-      doc.text(`${convertForPDF(t.daysLabel)} ${days}`, 10, 20);
-      doc.text(`${convertForPDF(t.operationsLabel)} ${operationsPerDay}`, 10, 30);
-      doc.text(`${convertForPDF(t.ticksLabel)} ${ticksPerOperation}`, 10, 40);
-      doc.text(`${convertForPDF(t.targetLabel)} ${targetValue.toFixed(2)}`, 10, 50);
-      doc.text(`${convertForPDF(t.marginLabel)} ${marginValue.toFixed(2)}`, 10, 60);
-      doc.text(`${convertForPDF(t.currencyLabel)} ${moeda}`, 10, 70);
-      doc.text(`${convertForPDF(t.recalculateLabel)} ${recalculateOperations}`, 10, 80);
-      doc.text(`${convertForPDF(t.targetAchievedLabel)} ${targetDay}`, 10, 90);
-      doc.text(`${convertForPDF(t.finalBankLabel)} ${finalBank}`, 10, 100);
+      doc.text(`${t.bankLabel}: ${initialBank.toFixed(2)}`, 14, 15);
+      doc.text(`${t.daysLabel}: ${days}`, 14, 22);
+      doc.text(`${t.operationsLabel}: ${operationsPerDay}`, 14, 29);
+      doc.text(`${t.ticksLabel}: ${moeda === 'USDJPY' ? (ticksPerOperation / 10).toFixed(0) : ticksPerOperation}`, 14, 36);
+      doc.text(`${t.targetLabel}: ${targetValue.toFixed(2)}`, 14, 43);
+      doc.text(`${t.marginLabel}: ${marginValue.toFixed(2)}`, 14, 50);
+      doc.text(`${t.currencyLabel}: ${moeda}`, 14, 57);
+      doc.text(`${t.recalculateLabel}: ${recalculateOperations}`, 14, 64);
+      doc.text(`${t.targetAchievedLabel}: ${targetDay}`, 14, 71);
+      doc.text(`${t.finalBankLabel}: ${finalBank}`, 14, 78);
 
-      const table = document.getElementById("projectionTable");
+
       const headers = [
-        convertForPDF(t.dayHeader),
-        convertForPDF(t.initialBankHeader),
-        convertForPDF(t.dailyProfitHeader),
-        convertForPDF(t.profitPerOperationHeader),
-        convertForPDF(t.totalBankHeader),
-        convertForPDF(t.totalBankBrlHeader),
-        convertForPDF(t.targetPercentageHeader),
-        convertForPDF(t.operationsHeader),
-        convertForPDF(t.lotHeader),
-        convertForPDF(t.ticksHeader)
+        t.dayHeader, t.initialBankHeader, t.dailyProfitHeader, t.profitPerOperationHeader,
+        t.totalBankHeader, t.totalBankBrlHeader, t.targetPercentageHeader,
+        t.operationsHeader, t.lotHeader, t.ticksHeader
       ];
 
-      const rows = Array.from(table.querySelectorAll("tbody tr")).map(tr =>
-        Array.from(tr.children).map(td => td.textContent)
-      );
+      const body = [];
+      let bank = initialBank;
+      let dayCounter = 1;
+
+      while (dayCounter <= days) {
+        let dailyProfit = 0;
+        const dayInitialBank = bank;
+        let dayOperationsBank = bank;
+        let lotUsedFirstOperation = 0;
+        let lotUsedLastOperation = 0;
+        let profitFirstOperation = 0;
+        let profitLastOperation = 0;
+        let operationDetails = [];
+
+        for (let op = 1; op <= operationsPerDay; op++) {
+          let maxPossibleLot = Math.floor(dayOperationsBank / marginValue) * 0.01;
+          let lotUsed = Math.max(0.01, Math.min(maxLotValue, maxPossibleLot));
+          const operationProfit = ticksPerOperation * tickValue * lotUsed;
+
+          dayOperationsBank += operationProfit;
+          dailyProfit += operationProfit;
+
+          operationDetails.push({
+            profit: operationProfit,
+            lot: lotUsed
+          });
+
+          if (op === 1) {
+            lotUsedFirstOperation = lotUsed;
+            profitFirstOperation = operationProfit;
+          }
+          if (op === operationsPerDay) {
+            lotUsedLastOperation = lotUsed;
+            profitLastOperation = operationProfit;
+          }
+        }
+
+        bank = dayOperationsBank;
+
+        let profitPerOperationText = profitFirstOperation.toFixed(2);
+        if (profitFirstOperation !== profitLastOperation) {
+          profitPerOperationText += ` até ${profitLastOperation.toFixed(2)}`;
+        }
+
+        let lotRangeText = lotUsedFirstOperation.toFixed(2);
+        if (lotUsedFirstOperation !== lotUsedLastOperation) {
+          lotRangeText += ` até ${lotUsedLastOperation.toFixed(2)}`;
+        }
+
+        const dailyPercentage = (dailyProfit / dayInitialBank) * 100;
+        const bankInBrl = (bank * usdToBrlRate).toLocaleString('pt-BR', {
+          style: 'currency',
+          currency: 'BRL'
+        });
+        const ticksDisplay = moeda === 'USDJPY' ? (ticksPerOperation / 10).toFixed(0) : ticksPerOperation;
+
+        body.push([
+          dayCounter,
+          dayInitialBank.toFixed(2),
+          dailyProfit.toFixed(2),
+          profitPerOperationText,
+          bank.toFixed(2),
+          bankInBrl,
+          `${dailyPercentage.toFixed(2)}%`,
+          operationsPerDay,
+          lotRangeText,
+          ticksDisplay
+        ]);
+
+        let totalOpProfit = 0;
+        operationDetails.forEach((detail, index) => {
+          body.push([
+            `${t.operationText} ${index + 1}`,
+            '', '',
+            detail.profit.toFixed(2),
+            '', '', '', '',
+            detail.lot.toFixed(2),
+            ticksDisplay
+          ]);
+          totalOpProfit += detail.profit;
+        });
+
+        if (operationsPerDay > 1) {
+          body.push([
+            t.totalText,
+            '', '',
+            totalOpProfit.toFixed(2),
+            '', '', '', '', '', ''
+          ]);
+        }
+        dayCounter++;
+      }
+
 
       doc.autoTable({
         head: [headers],
-        body: rows,
-        startY: 120,
-        styles: { fontSize: 8 },
+        body: body,
+        startY: 90,
+        theme: 'grid',
+        styles: {
+          fontSize: 6,
+          cellPadding: 1.5,
+          valign: 'middle',
+          halign: 'center'
+        },
+        headStyles: {
+          fillColor: [22, 160, 133],
+          textColor: 255,
+          fontStyle: 'bold'
+        },
+        didDrawCell: (data) => {
+          if (data.section === 'body') {
+            const cellText = data.cell.text[0] || '';
+            if (cellText.startsWith(t.operationText) || cellText.startsWith(t.totalText)) {
+              doc.setFillColor(245, 245, 245);
+            }
+          }
+        }
       });
 
-      doc.save("projection.pdf");
+      doc.save("projection_detailed.pdf");
     }
+
 
     async function fetchMargin(instrument) {
       try {
@@ -1034,19 +1130,39 @@
         const response = await fetch("https://www.exness.com/pwapi/", {
           method: "POST",
           headers: {
-            accept: "*/*", "accept-language": "pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7", "content-type": "application/json",
+            accept: "*/*",
+            "accept-language": "pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7",
+            "content-type": "application/json",
           },
           body: JSON.stringify({
             operationName: "Calculate",
-            variables: { input: { account_type: accountType, instrument: instrument, currency: "USD", leverage: 2000, lot: 0.01, }, },
+            variables: {
+              input: {
+                account_type: accountType,
+                instrument: instrument,
+                currency: "USD",
+                leverage: 2000,
+                lot: 0.01,
+              },
+            },
             query: "mutation Calculate($input: CalculationInput!) {\n  calculate(input: $input) {\n    currency\n    margin\n    pip_value\n    swap_long\n    swap_short\n    spread\n    commission\n    __typename\n  }\n}",
           }),
         });
-        if (!response.ok) { console.error(`HTTP error! status: ${response.status}`); return null; }
+        if (!response.ok) {
+          console.error(`HTTP error! status: ${response.status}`);
+          return null;
+        }
         const data = await response.json();
-        if (data && data.data && data.data.calculate) { return parseFloat(data.data.calculate.margin).toFixed(2); }
-        else { console.error("Unexpected API response:", data); return null; }
-      } catch (error) { console.error("Error fetching margin:", error); return null; }
+        if (data && data.data && data.data.calculate) {
+          return parseFloat(data.data.calculate.margin).toFixed(2);
+        } else {
+          console.error("Unexpected API response:", data);
+          return null;
+        }
+      } catch (error) {
+        console.error("Error fetching margin:", error);
+        return null;
+      }
     }
 
     async function generateProjection() {
@@ -1176,7 +1292,10 @@
             const formattedDate = formatDate(currentDate);
             if (currentDate < today) {
               row.classList.add("passed-day-row");
-              lastPassedDay = { row: row, day: dayCounter };
+              lastPassedDay = {
+                row: row,
+                day: dayCounter
+              };
               daysWithCheckmark++;
             }
 
@@ -1203,7 +1322,7 @@
                 profitLastOperation = operationProfit;
               }
             }
-            
+
             if (!greenRowAdded && bank >= targetValue) {
               row.classList.add("green-row");
               greenRowAdded = true;
@@ -1254,7 +1373,10 @@
           lastPassedDay.row.querySelector("td:first-child").textContent = lastPassedDay.day;
         }
 
-        const formattedBankValue = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", }).format(bank);
+        const formattedBankValue = new Intl.NumberFormat("en-US", {
+          style: "currency",
+          currency: "USD",
+        }).format(bank);
         document.querySelector("#finalBankValue").textContent = formattedBankValue;
         const t = translations[currentLanguage];
         document.querySelector("#targetAchievedDay").textContent =
@@ -1283,8 +1405,13 @@
       }
     }
 
-    function showLoading() { document.getElementById("loading").style.display = "flex"; }
-    function hideLoading() { document.getElementById("loading").style.display = "none"; }
+    function showLoading() {
+      document.getElementById("loading").style.display = "flex";
+    }
+
+    function hideLoading() {
+      document.getElementById("loading").style.display = "none";
+    }
 
     moedaSelect.addEventListener("change", async () => {
       showLoading();
@@ -1323,9 +1450,14 @@
       const inputValue = parseFloat(ticksInput.value);
       const selectedMoeda = moedaSelect.value;
       if (!isNaN(inputValue)) {
-        if (selectedMoeda === 'USDJPY') { originalTicksValue = inputValue * 10; }
-        else { originalTicksValue = inputValue; }
-      } else { originalTicksValue = 0; }
+        if (selectedMoeda === 'USDJPY') {
+          originalTicksValue = inputValue * 10;
+        } else {
+          originalTicksValue = inputValue;
+        }
+      } else {
+        originalTicksValue = 0;
+      }
       generateProjection();
     });
 
@@ -1386,18 +1518,38 @@
       document.getElementById('lotHeader').textContent = t.lotHeader;
       document.getElementById('ticksHeader').textContent = t.ticksHeader;
 
-      const languageNames = { pt: 'Português', en: 'English', es: 'Español', fr: 'Français', de: 'Deutsch', it: 'Italiano', ru: 'Русский', zh: '中文' };
+      const languageNames = {
+        pt: 'Português',
+        en: 'English',
+        es: 'Español',
+        fr: 'Français',
+        de: 'Deutsch',
+        it: 'Italiano',
+        ru: 'Русский',
+        zh: '中文'
+      };
       document.getElementById('currentLanguage').textContent = languageNames[lang];
-      const flags = { pt: '🇧🇷', en: '🇺🇸', es: '🇪🇸', fr: '🇫🇷', de: '🇩🇪', it: '🇮🇹', ru: '🇷🇺', zh: '🇨🇳' };
+      const flags = {
+        pt: '🇧🇷',
+        en: '🇺🇸',
+        es: '🇪🇸',
+        fr: '🇫🇷',
+        de: '🇩🇪',
+        it: '🇮🇹',
+        ru: '🇷🇺',
+        zh: '🇨🇳'
+      };
       document.querySelector('.language-btn .flag').textContent = flags[lang];
 
-      document.querySelectorAll('.language-option').forEach(option => { option.classList.remove('active'); });
+      document.querySelectorAll('.language-option').forEach(option => {
+        option.classList.remove('active');
+      });
       document.querySelector(`[data-lang="${lang}"]`).classList.add('active');
       document.getElementById('languageDropdown').classList.remove('show');
       generateProjection();
     }
 
-    document.addEventListener('click', function (event) {
+    document.addEventListener('click', function(event) {
       const dropdown = document.getElementById('languageDropdown');
       const button = document.querySelector('.language-btn');
       if (!dropdown.contains(event.target) && !button.contains(event.target)) {
@@ -1415,14 +1567,18 @@
       }
       localStorage.setItem('theme', theme);
     }
+
     function toggleTheme() {
       const isDark = document.body.classList.contains('dark-theme');
       setTheme(isDark ? 'light' : 'dark');
     }
-    (function () {
+    (function() {
       const savedTheme = localStorage.getItem('theme');
-      if (savedTheme === 'dark') { setTheme('dark'); }
-      else { setTheme('light'); }
+      if (savedTheme === 'dark') {
+        setTheme('dark');
+      } else {
+        setTheme('light');
+      }
     })();
   </script>
 </body>
