@@ -1066,18 +1066,27 @@
           ticksDisplay
         ]);
 
-        let totalOpProfit = 0;
-        operationDetails.forEach((detail, index) => {
+        if (operationsPerDay > 1) {
+          let totalOpProfit = 0;
+          operationDetails.forEach((detail, index) => {
+            body.push([
+              `${t.operationText} ${index + 1}`,
+              '', '',
+              detail.profit.toFixed(2),
+              '', '', '', '',
+              detail.lot.toFixed(2),
+              ticksDisplay
+            ]);
+            totalOpProfit += detail.profit;
+          });
+
           body.push([
-            `${t.operationText} ${index + 1}`,
+            t.totalText,
             '', '',
-            detail.profit.toFixed(2),
-            '', '', '', '',
-            detail.lot.toFixed(2),
-            ticksDisplay
+            totalOpProfit.toFixed(2),
+            '', '', '', '', '', ''
           ]);
-          totalOpProfit += detail.profit;
-        });
+        }
 
         if (operationsPerDay > 1) {
           body.push([
