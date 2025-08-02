@@ -1107,17 +1107,18 @@
           textColor: 255,
           fontStyle: 'bold'
         },
-        didDrawCell: (data) => {
+        didParseCell: (data) => {
           if (data.section === 'body') {
-            const cellText = data.cell.text[0] || '';
-            if (cellText.startsWith(t.operationText) || cellText.startsWith(t.totalText)) {
-              doc.setFillColor(245, 245, 245);
+            const firstCellContent = data.row.raw[0];
+
+            if (typeof firstCellContent === 'number') {
+              data.cell.styles.fillColor = [245, 245, 245];
             }
           }
         }
       });
 
-      doc.save("projection_detailed.pdf");
+      doc.save("projection.pdf");
     }
 
 
