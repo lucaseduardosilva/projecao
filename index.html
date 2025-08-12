@@ -613,6 +613,7 @@
           <label for="moeda" id="currencyLabel">Moeda</label>
           <select name="moeda" id="moeda">
             <option value="XAUUSD">XAUUSD</option>
+            <option value="USDJPY">USDJPY</option>
           </select>
         </div>
         <div class="input-group">
@@ -621,7 +622,7 @@
         </div>
         <div class="input-group">
           <label for="targetInput" id="targetLabel">Meta (US$)</label>
-          <input type="number" id="targetInput" value="200000.00" />
+          <input type="number" id="targetInput" value="" />
         </div>
         <div class="input-group larger-field">
           <label for="marginInput" id="marginLabel">Margem de 0.01 lote</label>
@@ -637,16 +638,37 @@
         </div>
       </div>
 
-      <div style="display: flex; gap: 1rem; justify-content: center; margin-bottom: 1rem;">
-        <button id="saveButton" class="export-btn" onclick="saveFormData()">
-          <span id="saveButtonText">💾 Salvar Configuração</span>
-        </button>
-        <button id="loadButton" class="export-btn" onclick="loadFormData()" style="background-color: var(--success);">
-          <span id="loadButtonText">💾 Carregar Configuração</span>
-        </button>
-        <button id="clearButton" class="export-btn" onclick="clearFormData()" style="background-color: var(--danger);">
-          <span id="clearButtonText">🗑️ Limpar Configuração</span>
-        </button>
+      <div
+        style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 1rem; margin-bottom: 1rem;">
+        <!-- Configuration selection and naming -->
+        <div
+          style="display: flex; flex-direction: column; gap: 0.5rem; flex-grow: 1; min-width: 200px; max-width: 300px;">
+          <label for="configSelect" id="configSelectLabel"
+            style="font-weight: 600; font-size: 0.875rem; color: var(--gray-700);">Configurações Salvas</label>
+          <select id="configSelect"
+            style="padding: 0.75rem; border: 1px solid var(--gray-300); border-radius: var(--border-radius); font-size: 0.875rem; transition: var(--transition); color: var(--gray-800); background-color: white; width: 100%;">
+            <option value="newConfig" id="newConfigOption"></option>
+          </select>
+          <div id="newConfigNameContainer"
+            style="display: none; align-items: center; gap: 0.5rem; margin-top: 0.5rem; width: 100%;">
+            <input type="text" id="newConfigNameInput" placeholder=""
+              style="flex-grow: 1; padding: 0.75rem; border: 1px solid var(--gray-300); border-radius: var(--border-radius);">
+            <button id="confirmSaveNewConfigBtn" class="export-btn"
+              style="background-color: var(--primary); padding: 0.5rem 1rem;"><span
+                id="confirmSaveNewConfigText"></span></button>
+          </div>
+        </div>
+
+        <!-- Save/Delete buttons -->
+        <div style="display: flex; gap: 1rem; flex-wrap: wrap; align-items: flex-end;">
+          <button id="saveButton" class="export-btn" onclick="saveCurrentConfig()">
+            <span id="saveButtonText">💾 Salvar Configuração</span>
+          </button>
+          <button id="deleteButton" class="export-btn" onclick="deleteCurrentConfig()"
+            style="background-color: var(--danger);">
+            <span id="deleteButtonText">🗑️ Excluir</span>
+          </button>
+        </div>
       </div>
 
       <div class="info-grid">
@@ -703,12 +725,37 @@
     const bankInput = document.querySelector("#bankInput");
     const recalculateOperationsInput = document.querySelector("#recalculateOperationsInput");
 
+    const configSelect = document.getElementById('configSelect');
+    const newConfigNameContainer = document.getElementById('newConfigNameContainer');
+    const newConfigNameInput = document.getElementById('newConfigNameInput');
+    const confirmSaveNewConfigBtn = document.getElementById('confirmSaveNewConfigBtn');
+    const saveButton = document.getElementById('saveButton');
+    const deleteButton = document.getElementById('deleteButton');
+
     let usdToBrlRate = 0;
     let defaultMarginValue = 1.49;
     let originalTicksValue = 500;
     let xauusdValues = {};
     let selectedRows = new Set();
     let currentLanguage = 'pt';
+
+    let allConfigs = {}; // Stores all saved configurations
+    let activeConfigName = null; // Name of the currently loaded configuration
+
+    // Default values for form fields (useful for 'newConfig' or clearing)
+    const defaultFormValues = {
+      bankInput: 2,
+      daysInput: 210,
+      operationsInput: 1,
+      moeda: 'XAUUSD',
+      ticksInput: 500,
+      targetInput: null, // Will be calculated by API
+      marginInput: null, // Will be fetched
+      lotes: 250,
+      recalculateOperationsInput: 1,
+      originalTicksValue: 500
+    };
+
 
     const translations = {
       pt: {
@@ -743,12 +790,21 @@
         targetNotAchieved: "Meta não atingida",
         daysOfOperation: "dias de operação",
         saveButtonText: "💾 Salvar Configuração",
-        loadButtonText: "💾 Carregar Configuração",
-        clearButtonText: "🗑️ Limpar Configuração",
+        deleteButtonText: "🗑️ Excluir",
         configSaved: "Configuração salva com sucesso!",
         configLoaded: "Configuração carregada com sucesso!",
-        configCleared: "Configuração limpa com sucesso!",
-        noSavedConfig: "Nenhuma configuração salva encontrada."
+        configCleared: "Configuração excluída com sucesso!", // Renamed from clear
+        noSavedConfig: "Nenhuma configuração salva encontrada.",
+        configSelectLabel: "Configurações Salvas",
+        newConfigOptionText: "➕ Nova Configuração",
+        newConfigNameInputPlaceholder: "Nome da configuração",
+        confirmSaveNewConfigText: "OK",
+        noConfigSelected: "Nenhuma configuração selecionada ou ativa para salvar.",
+        configNotFound: "Configuração não encontrada.",
+        noConfigSelectedToDelete: "Nenhuma configuração selecionada para excluir.",
+        confirmDelete: "Tem certeza que deseja excluir a configuração",
+        configNameExists: "Já existe uma configuração com este nome. Por favor, escolha outro nome.",
+        pleaseEnterConfigName: "Por favor, insira um nome para a nova configuração."
       },
       en: {
         mainTitle: "Bank Projection",
@@ -782,12 +838,21 @@
         targetNotAchieved: "Target not achieved",
         daysOfOperation: "days of operation",
         saveButtonText: "💾 Save Configuration",
-        loadButtonText: "💾 Load Configuration",
-        clearButtonText: "🗑️ Clear Configuration",
+        deleteButtonText: "🗑️ Delete",
         configSaved: "Configuration saved successfully!",
         configLoaded: "Configuration loaded successfully!",
-        configCleared: "Configuration cleared successfully!",
-        noSavedConfig: "No saved configuration found."
+        configCleared: "Configuration deleted successfully!",
+        noSavedConfig: "No saved configuration found.",
+        configSelectLabel: "Saved Configurations",
+        newConfigOptionText: "➕ New Configuration",
+        newConfigNameInputPlaceholder: "Configuration name",
+        confirmSaveNewConfigText: "OK",
+        noConfigSelected: "No configuration selected or active to save.",
+        configNotFound: "Configuration not found.",
+        noConfigSelectedToDelete: "No configuration selected to delete.",
+        confirmDelete: "Are you sure you want to delete configuration",
+        configNameExists: "A configuration with this name already exists. Please choose another name.",
+        pleaseEnterConfigName: "Please enter a name for the new configuration."
       },
       es: {
         mainTitle: "Proyección de Banca",
@@ -821,12 +886,21 @@
         targetNotAchieved: "Meta no alcanzada",
         daysOfOperation: "días de operación",
         saveButtonText: "💾 Guardar Configuración",
-        loadButtonText: "📂 Cargar Configuración",
-        clearButtonText: "🗑️ Limpiar Configuración",
+        deleteButtonText: "🗑️ Eliminar",
         configSaved: "¡Configuración guardada exitosamente!",
         configLoaded: "¡Configuración cargada exitosamente!",
-        configCleared: "¡Configuración limpiada exitosamente!",
-        noSavedConfig: "No se encontró configuración guardada."
+        configCleared: "¡Configuración eliminada exitosamente!",
+        noSavedConfig: "No se encontró configuración guardada.",
+        configSelectLabel: "Configuraciones Guardadas",
+        newConfigOptionText: "➕ Nueva Configuración",
+        newConfigNameInputPlaceholder: "Nombre de la configuración",
+        confirmSaveNewConfigText: "OK",
+        noConfigSelected: "Ninguna configuración seleccionada o activa para guardar.",
+        configNotFound: "Configuración no encontrada.",
+        noConfigSelectedToDelete: "Ninguna configuración seleccionada para eliminar.",
+        confirmDelete: "¿Está seguro de que desea eliminar la configuración",
+        configNameExists: "Ya existe una configuración con este nombre. Por favor, elija otro nombre.",
+        pleaseEnterConfigName: "Por favor, ingrese un nombre para la nueva configuración."
       },
       fr: {
         mainTitle: "Projection de Banque",
@@ -860,12 +934,21 @@
         targetNotAchieved: "Objectif non atteint",
         daysOfOperation: "jours d'opération",
         saveButtonText: "💾 Sauvegarder Configuration",
-        loadButtonText: "📂 Charger Configuration",
-        clearButtonText: "🗑️ Effacer Configuration",
+        deleteButtonText: "🗑️ Supprimer",
         configSaved: "Configuration sauvegardée avec succès !",
         configLoaded: "Configuration chargée avec succès !",
-        configCleared: "Configuration effacée avec succès !",
-        noSavedConfig: "Aucune configuration sauvegardée trouvée."
+        configCleared: "Configuration supprimée avec succès !",
+        noSavedConfig: "Aucune configuration sauvegardée trouvée.",
+        configSelectLabel: "Configurations Enregistrées",
+        newConfigOptionText: "➕ Nouvelle Configuration",
+        newConfigNameInputPlaceholder: "Nom de la configuration",
+        confirmSaveNewConfigText: "OK",
+        noConfigSelected: "Aucune configuration sélectionnée ou active à enregistrer.",
+        configNotFound: "Configuration introuvable.",
+        noConfigSelectedToDelete: "Aucune configuration sélectionnée à supprimer.",
+        confirmDelete: "Êtes-vous sûr de vouloir supprimer la configuration",
+        configNameExists: "Une configuration avec ce nom existe déjà. Veuillez choisir un autre nom.",
+        pleaseEnterConfigName: "Veuillez entrer un nom pour la nouvelle configuration."
       },
       de: {
         mainTitle: "Bank-Projektion",
@@ -898,13 +981,22 @@
         totalText: "Gesamt",
         targetNotAchieved: "Ziel nicht erreicht",
         daysOfOperation: "Handelstage",
-        saveButtonText: "💾 Konfiguration Speichern",
-        loadButtonText: "📂 Konfiguration Laden",
-        clearButtonText: "🗑️ Konfiguration Löschen",
+        saveButtonText: "💾 Konfiguration speichern",
+        deleteButtonText: "🗑️ Löschen",
         configSaved: "Konfiguration erfolgreich gespeichert!",
         configLoaded: "Konfiguration erfolgreich geladen!",
         configCleared: "Konfiguration erfolgreich gelöscht!",
-        noSavedConfig: "Keine gespeicherte Konfiguration gefunden."
+        noSavedConfig: "Keine gespeicherte Konfiguration gefunden.",
+        configSelectLabel: "Gespeicherte Konfigurationen",
+        newConfigOptionText: "➕ Neue Konfiguration",
+        newConfigNameInputPlaceholder: "Konfigurationsname",
+        confirmSaveNewConfigText: "OK",
+        noConfigSelected: "Keine Konfiguration ausgewählt oder aktiv zum Speichern.",
+        configNotFound: "Konfiguration nicht gefunden.",
+        noConfigSelectedToDelete: "Keine Konfiguration zum Löschen ausgewählt.",
+        confirmDelete: "Möchten Sie die Konfiguration wirklich löschen",
+        configNameExists: "Eine Konfiguration mit diesem Namen existiert bereits. Bitte wählen Sie einen anderen Namen.",
+        pleaseEnterConfigName: "Bitte geben Sie einen Namen für die neue Konfiguration ein."
       },
       it: {
         mainTitle: "Proiezione Banca",
@@ -938,12 +1030,21 @@
         targetNotAchieved: "Obiettivo non raggiunto",
         daysOfOperation: "giorni di operazione",
         saveButtonText: "💾 Salva Configurazione",
-        loadButtonText: "📂 Carica Configurazione",
-        clearButtonText: "🗑️ Cancella Configurazione",
+        deleteButtonText: "🗑️ Elimina",
         configSaved: "Configurazione salvata con successo!",
         configLoaded: "Configurazione caricata con successo!",
-        configCleared: "Configurazione cancellata con successo!",
-        noSavedConfig: "Nessuna configurazione salvata trovata."
+        configCleared: "Configurazione eliminata con successo!",
+        noSavedConfig: "Nessuna configurazione salvata trovata.",
+        configSelectLabel: "Configurazioni Salvate",
+        newConfigOptionText: "➕ Nuova Configurazione",
+        newConfigNameInputPlaceholder: "Nome configurazione",
+        confirmSaveNewConfigText: "OK",
+        noConfigSelected: "Nessuna configurazione selezionata o attiva da salvare.",
+        configNotFound: "Configurazione non trovata.",
+        noConfigSelectedToDelete: "Nessuna configurazione selezionata da eliminare.",
+        confirmDelete: "Sei sicuro di voler eliminare la configurazione",
+        configNameExists: "Esiste già una configurazione con questo nome. Si prega di scegliere un altro nome.",
+        pleaseEnterConfigName: "Si prega di inserire un nome per la nuova configurazione."
       },
       ru: {
         mainTitle: "Проекция Банка",
@@ -977,12 +1078,21 @@
         targetNotAchieved: "Цель не достигнута",
         daysOfOperation: "дней торговли",
         saveButtonText: "💾 Сохранить Конфигурацию",
-        loadButtonText: "📂 Загрузить Конфигурацию",
-        clearButtonText: "🗑️ Очистить Конфигурацию",
+        deleteButtonText: "🗑️ Удалить",
         configSaved: "Конфигурация успешно сохранена!",
         configLoaded: "Конфигурация успешно загружена!",
-        configCleared: "Конфигурация успешно очищена!",
-        noSavedConfig: "Сохраненная конфигурация не найдена."
+        configCleared: "Конфигурация успешно удалена!",
+        noSavedConfig: "Сохраненная конфигурация не найдена.",
+        configSelectLabel: "Сохраненные Конфигурации",
+        newConfigOptionText: "➕ Новая Конфигурация",
+        newConfigNameInputPlaceholder: "Имя конфигурации",
+        confirmSaveNewConfigText: "ОК",
+        noConfigSelected: "Конфигурация не выбрана или не активна для сохранения.",
+        configNotFound: "Конфигурация не найдена.",
+        noConfigSelectedToDelete: "Конфигурация для удаления не выбрана.",
+        confirmDelete: "Вы уверены, что хотите удалить конфигурацию",
+        configNameExists: "Конфигурация с таким именем уже существует. Пожалуйста, выберите другое имя.",
+        pleaseEnterConfigName: "Пожалуйста, введите имя для новой конфигурации."
       },
       zh: {
         mainTitle: "银行预测",
@@ -1016,12 +1126,21 @@
         targetNotAchieved: "目标未达成",
         daysOfOperation: "个交易日",
         saveButtonText: "💾 保存配置",
-        loadButtonText: "📂 加载配置",
-        clearButtonText: "🗑️ 清除配置",
+        deleteButtonText: "🗑️ 删除",
         configSaved: "配置保存成功！",
         configLoaded: "配置加载成功！",
-        configCleared: "配置清除成功！",
-        noSavedConfig: "未找到保存的配置。"
+        configCleared: "配置已删除！",
+        noSavedConfig: "未找到保存的配置。",
+        configSelectLabel: "已保存配置",
+        newConfigOptionText: "➕ 新建配置",
+        newConfigNameInputPlaceholder: "配置名称",
+        confirmSaveNewConfigText: "确定",
+        noConfigSelected: "没有选择或活动的配置可保存。",
+        configNotFound: "未找到配置。",
+        noConfigSelectedToDelete: "未选择要删除的配置。",
+        confirmDelete: "您确定要删除配置",
+        configNameExists: "此名称的配置已存在。请选择其他名称。",
+        pleaseEnterConfigName: "请输入新配置的名称。"
       }
     };
 
@@ -1072,24 +1191,26 @@
       while (dayCounter <= days) {
         let dailyProfit = 0;
         const dayInitialBank = bank;
-        let dayOperationsBank = bank;
+        let dayOperationsBank = bank; // This is the bank value *within* the day's operations
         let lotUsedFirstOperation = 0;
         let lotUsedLastOperation = 0;
         let profitFirstOperation = 0;
         let profitLastOperation = 0;
-        let operationDetails = [];
+        let operationDetailsForPdf = []; // New array for PDF details
 
         for (let op = 1; op <= operationsPerDay; op++) {
           let maxPossibleLot = Math.floor(dayOperationsBank / marginValue) * 0.01;
           let lotUsed = Math.max(0.01, Math.min(maxLotValue, maxPossibleLot));
           const operationProfit = ticksPerOperation * tickValue * lotUsed;
 
-          dayOperationsBank += operationProfit;
+          dayOperationsBank += operationProfit; // Accumulate for the day
           dailyProfit += operationProfit;
 
-          operationDetails.push({
+          operationDetailsForPdf.push({ // Store details for PDF
             profit: operationProfit,
-            lot: lotUsed
+            lot: lotUsed,
+            bankAfterOperation: dayOperationsBank, // Crucial for PDF details
+            bankInBrlAfterOperation: dayOperationsBank * usdToBrlRate
           });
 
           if (op === 1) {
@@ -1102,7 +1223,7 @@
           }
         }
 
-        bank = dayOperationsBank;
+        bank = dayOperationsBank; // Final bank for the day
 
         let profitPerOperationText = profitFirstOperation.toFixed(2);
         if (profitFirstOperation !== profitLastOperation) {
@@ -1134,26 +1255,28 @@
           ticksDisplay
         ]);
 
-        let totalOpProfit = 0;
-        operationDetails.forEach((detail, index) => {
+        // Iterate through operationDetailsForPdf for detailed rows in PDF
+        operationDetailsForPdf.forEach((detail, index) => {
           body.push([
             `${t.operationText} ${index + 1}`,
             '', '',
             detail.profit.toFixed(2),
-            detail.bankAfterOperation.toFixed(2), // Banca Total após a operação
-            detail.bankInBrlAfterOperation.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }), // Banca Total (BRL) após a operação
+            detail.bankAfterOperation.toFixed(2),
+            detail.bankInBrlAfterOperation.toLocaleString('pt-BR', {
+              style: 'currency',
+              currency: 'BRL'
+            }),
             '', '',
             detail.lot.toFixed(2),
             ticksDisplay
           ]);
-          totalOpProfit += detail.profit;
         });
 
         if (operationsPerDay > 1) {
           body.push([
             t.totalText,
             '', '',
-            totalOpProfit.toFixed(2),
+            dailyProfit.toFixed(2), // Total profit for the day (dailyProfit already accumulates)
             '', '', '', '', '', ''
           ]);
         }
@@ -1179,10 +1302,18 @@
         },
         didParseCell: (data) => {
           if (data.section === 'body') {
-            const firstCellContent = data.row.raw[0];
+            // Check if it's a main day row
+            const isMainDayRow = !isNaN(parseInt(data.row.raw[0])) && !String(data.row.raw[0]).includes(t.operationText.trim()) && data.row.raw[0] !== t.totalText;
+            const isOperationRow = String(data.row.raw[0]).includes(t.operationText.trim());
+            const isTotalRow = data.row.raw[0] === t.totalText;
 
-            if (typeof firstCellContent === 'number') {
+            if (isMainDayRow) {
               data.cell.styles.fillColor = [245, 245, 245];
+            } else if (isOperationRow || isTotalRow) {
+              // Apply specific styles for operation and total rows
+              data.cell.styles.fillColor = [250, 250, 250]; // Lighter background for sub-rows
+              data.cell.styles.fontStyle = 'normal';
+              data.cell.styles.fontSize = 5; // Smaller font for sub-rows
             }
           }
         }
@@ -1268,20 +1399,15 @@
         let today = new Date();
         let lastPassedDay = null;
         let daysWithCheckmark = 0;
-        let lastDayBank = initialBank;
+        let lastDayBank = initialBank; // Tracks the bank from the end of the previous business day
 
         while (currentDate <= endDate && dayCounter <= days) {
           const dayOfWeek = currentDate.getDay();
-          if (dayOfWeek !== 0 && dayOfWeek !== 6) {
+          if (dayOfWeek !== 0 && dayOfWeek !== 6) { // Only count business days
 
-            operationsCounter = 0;
-            bank = lastDayBank; // A banca para o dia começa com a banca final do dia anterior
             let dailyProfit = 0;
-            const dayInitialBank = bank;
-            let lotUsedFirstOperation = 0.01;
-            let lotUsedLastOperation = 0.01;
-            let profitFirstOperation = 0;
-            let profitLastOperation = 0;
+            const dayInitialBank = lastDayBank; // The day starts with the bank from the end of the previous business day
+            let currentBankForDetailedOperations = dayInitialBank; // Temporary bank for operations calculation within the day
 
             const row = document.createElement("tr");
             row.dataset.day = dayCounter;
@@ -1295,10 +1421,9 @@
               } else {
                 selectedRows.add(day);
                 row.classList.add('selected-row');
-                let currentBank = dayInitialBank; // Inicia com a banca inicial do dia para as operações detalhadas
+                let currentBankAtStartOfOperationsForDisplay = dayInitialBank; // Use initial bank of the day for detailed display
 
                 const operationRows = [];
-                let totalProfit = 0;
                 const t = translations[currentLanguage];
 
                 for (let op = 1; op <= operationsPerDay; op++) {
@@ -1307,27 +1432,28 @@
                   operationRow.dataset.parentDay = day;
 
                   let operationLotValue = 0.01;
-                  let maxPossibleLot = Math.floor(currentBank / marginValue) * 0.01;
+                  let maxPossibleLot = Math.floor(currentBankAtStartOfOperationsForDisplay / marginValue) * 0.01;
                   operationLotValue = Math.max(0.01, Math.min(maxLotValue, maxPossibleLot));
 
                   const operationProfit = ticksPerOperation * tickValue * operationLotValue;
-                  currentBank += operationProfit; // Atualiza a banca após cada operação
-                  totalProfit += operationProfit;
+                  currentBankAtStartOfOperationsForDisplay += operationProfit; // Update bank after each operation
 
-                  // Calcula e formata a banca total em BRL para a operação atual
-                  const currentBankInBrl = (currentBank * usdToBrlRate).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+                  const currentBankInBrl = (currentBankAtStartOfOperationsForDisplay * usdToBrlRate).toLocaleString('pt-BR', {
+                    style: 'currency',
+                    currency: 'BRL'
+                  });
 
                   operationRow.innerHTML = `
-                      <td style="background-color: #f2f2f2; white-space: nowrap;">${t.operationText.trim()} ${op}</td>
-                      <td style="background-color: #f2f2f2;"></td>
-                      <td style="background-color: #f2f2f2;"></td>
-                      <td style="background-color: #f2f2f2;">${operationProfit.toFixed(2)}</td>
-                      <td style="background-color: #f2f2f2;">${currentBank.toFixed(2)}</td>
-                      <td style="background-color: #f2f2f2;">${currentBankInBrl}</td>
-                      <td style="background-color: #f2f2f2;"></td>
-                      <td style="background-color: #f2f2f2;"></td>
-                      <td style="background-color: #f2f2f2;">${operationLotValue.toFixed(2)}</td>
-                      <td style="background-color: #f2f2f2;">${ticksPerOperation}</td>
+                      <td style="background-color: var(--gray-50); white-space: nowrap;">${t.operationText.trim()} ${op}</td>
+                      <td style="background-color: var(--gray-50);"></td>
+                      <td style="background-color: var(--gray-50);"></td>
+                      <td style="background-color: var(--gray-50);">${operationProfit.toFixed(2)}</td>
+                      <td style="background-color: var(--gray-50);">${currentBankAtStartOfOperationsForDisplay.toFixed(2)}</td>
+                      <td style="background-color: var(--gray-50);"> ${currentBankInBrl}</td>
+                      <td style="background-color: var(--gray-50);"></td>
+                      <td style="background-color: var(--gray-50);"></td>
+                      <td style="background-color: var(--gray-50);"> ${operationLotValue.toFixed(2)}</td>
+                      <td style="background-color: var(--gray-50);"> ${ticksPerOperation}</td>
                   `;
                   operationRows.push(operationRow);
                 }
@@ -1336,17 +1462,28 @@
                   const totalRow = document.createElement("tr");
                   totalRow.classList.add("operation-row");
                   totalRow.dataset.parentDay = day;
+                  // Recalculate total profit for the day to display correctly in total row
+                  let reCalcDailyProfit = 0;
+                  let tempBankForTotal = dayInitialBank;
+                  for (let op = 1; op <= operationsPerDay; op++) {
+                    let maxPossibleLot = Math.floor(tempBankForTotal / marginValue) * 0.01;
+                    let lotUsed = Math.max(0.01, Math.min(maxLotValue, maxPossibleLot));
+                    const operationProfit = ticksPerOperation * tickValue * lotUsed;
+                    tempBankForTotal += operationProfit;
+                    reCalcDailyProfit += operationProfit;
+                  }
+
                   totalRow.innerHTML = `
-                      <td style="background-color: #f2f2f2;">${t.totalText}</td>
-                      <td style="background-color: #f2f2f2;"></td>
-                      <td style="background-color: #f2f2f2;"></td>
-                      <td style="background-color: #f2f2f2;">${totalProfit.toFixed(2)}</td>
-                      <td style="background-color: #f2f2f2;"></td>
-                      <td style="background-color: #f2f2f2;"></td>
-                      <td style="background-color: #f2f2f2;"></td>
-                      <td style="background-color: #f2f2f2;"></td>
-                      <td style="background-color: #f2f2f2;"></td>
-                      <td style="background-color: #f2f2f2;"></td>
+                      <td style="background-color: var(--gray-50); font-weight: 600;">${t.totalText}</td>
+                      <td style="background-color: var(--gray-50);"></td>
+                      <td style="background-color: var(--gray-50);"></td>
+                      <td style="background-color: var(--gray-50); font-weight: 600;">${reCalcDailyProfit.toFixed(2)}</td>
+                      <td style="background-color: var(--gray-50);"></td>
+                      <td style="background-color: var(--gray-50);"></td>
+                      <td style="background-color: var(--gray-50);"></td>
+                      <td style="background-color: var(--gray-50);"></td>
+                      <td style="background-color: var(--gray-50);"></td>
+                      <td style="background-color: var(--gray-50);"></td>
                   `;
                   operationRows.push(totalRow);
                 }
@@ -1379,15 +1516,19 @@
             }
 
             let dayDisplay = dayCounter;
-            let dailyProfitValue = 0;
 
-            // Calcular as operações do dia e acumular a banca
+            let lotUsedFirstOperation = 0.01;
+            let lotUsedLastOperation = 0.01;
+            let profitFirstOperation = 0;
+            let profitLastOperation = 0;
+
+            // Calculate the daily profit and final bank for the day
             for (let op = 1; op <= operationsPerDay; op++) {
-              let maxPossibleLot = Math.floor(bank / marginValue) * 0.01;
+              let maxPossibleLot = Math.floor(currentBankForDetailedOperations / marginValue) * 0.01;
               let lotUsed = Math.max(0.01, Math.min(maxLotValue, maxPossibleLot));
               const operationProfit = ticksPerOperation * tickValue * lotUsed;
-              bank += operationProfit;
-              dailyProfitValue += operationProfit;
+              currentBankForDetailedOperations += operationProfit;
+              dailyProfit += operationProfit;
 
               if (op === 1) {
                 lotUsedFirstOperation = lotUsed;
@@ -1398,6 +1539,8 @@
                 profitLastOperation = operationProfit;
               }
             }
+            bank = currentBankForDetailedOperations; // The actual final bank for this business day
+
 
             if (!greenRowAdded && bank >= targetValue) {
               row.classList.add("green-row");
@@ -1410,7 +1553,7 @@
               profitPerOperation += " até " + profitLastOperation.toFixed(2);
             }
             const ticksDisplay = moeda === 'USDJPY' ? (ticksPerOperation / 10).toFixed(0) : ticksPerOperation;
-            const dailyPercentage = (dailyProfitValue / dayInitialBank) * 100;
+            const dailyPercentage = (dailyProfit / dayInitialBank) * 100;
             const bankInBrl = bank * usdToBrlRate;
 
             let lotRange = lotUsedFirstOperation.toFixed(2);
@@ -1421,7 +1564,7 @@
             row.innerHTML = `
                 <td>${dayDisplay}</td>
                 <td>${dayInitialBank.toFixed(2)}</td>
-                <td>${dailyProfitValue.toFixed(2)}</td>
+                <td>${dailyProfit.toFixed(2)}</td>
                 <td>${profitPerOperation}</td>
                 <td>${bank.toFixed(2)}</td>
                 <td>${bankInBrl.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</td>
@@ -1434,7 +1577,7 @@
             tableBody.appendChild(row);
             businessDays++;
             dayCounter++;
-            lastDayBank = bank; // Atualiza a banca final do dia para o próximo dia
+            lastDayBank = bank; // Update the final bank of the current day for the next day's initial bank
           }
           currentDate.setDate(currentDate.getDate() + 1);
 
@@ -1496,24 +1639,30 @@
         let ticksValue = 500;
         if (selectedMoeda === "XAUUSD") {
           ticksValue = 500;
-          lotesInput.value = 200;
-          if (xauusdValues.bankInput) {
+          lotesInput.value = 250; // Keep default for XAUUSD
+          if (xauusdValues.bankInput) { // Restore if values were saved for XAUUSD
             bankInput.value = xauusdValues.bankInput;
             ticksInput.value = xauusdValues.ticksInput;
             marginInput.value = xauusdValues.marginInput;
             originalTicksValue = xauusdValues.originalTicksValue;
+          } else { // Apply default values if no specific XAUUSD config saved
+            bankInput.value = defaultFormValues.bankInput;
+            ticksInput.value = defaultFormValues.ticksInput;
+            originalTicksValue = defaultFormValues.originalTicksValue;
           }
         } else if (selectedMoeda === "USDJPY") {
+          // Save current XAUUSD values before switching
           xauusdValues.bankInput = bankInput.value;
           xauusdValues.ticksInput = ticksInput.value;
           xauusdValues.marginInput = marginInput.value;
           xauusdValues.originalTicksValue = originalTicksValue;
+
           ticksValue = 20000;
-          lotesInput.value = 200;
-          bankInput.value = 1;
+          lotesInput.value = 200; // Specific lot for USDJPY
+          bankInput.value = 1; // Specific initial bank for USDJPY
+          originalTicksValue = ticksValue; // Update originalTicksValue for calculations
+          ticksInput.value = ticksValue / 10; // Display as Pips
         }
-        originalTicksValue = ticksValue;
-        ticksInput.value = selectedMoeda === "USDJPY" ? ticksValue / 10 : ticksValue;
         const margin = await fetchMargin(selectedMoeda);
         marginInput.value = margin !== null ? margin : parseFloat(defaultMarginValue).toFixed(2);
         generateProjection();
@@ -1522,12 +1671,13 @@
       }
     });
 
+
     ticksInput.addEventListener('input', () => {
       const inputValue = parseFloat(ticksInput.value);
       const selectedMoeda = moedaSelect.value;
       if (!isNaN(inputValue)) {
         if (selectedMoeda === 'USDJPY') {
-          originalTicksValue = inputValue * 10;
+          originalTicksValue = inputValue * 10; // Convert displayed pips back to ticks
         } else {
           originalTicksValue = inputValue;
         }
@@ -1542,21 +1692,309 @@
     document.querySelector("#bankInput").addEventListener("input", generateProjection);
     document.querySelector("#daysInput").addEventListener("input", generateProjection);
     document.querySelector("#operationsInput").addEventListener("input", generateProjection);
-    document.querySelector("#ticksInput").addEventListener("input", generateProjection);
     document.querySelector("#targetInput").addEventListener("input", generateProjection);
     document.querySelector("#recalculateOperationsInput").addEventListener("input", generateProjection);
+
+    // --- Configuration Management Functions ---
+
+    function populateConfigSelect() {
+      configSelect.innerHTML = ''; // Clear existing options
+      const newConfigOption = document.createElement('option');
+      newConfigOption.value = 'newConfig';
+      newConfigOption.id = 'newConfigOption';
+      newConfigOption.textContent = translations[currentLanguage].newConfigOptionText;
+      configSelect.appendChild(newConfigOption);
+
+      let firstConfigName = null;
+      for (const name in allConfigs) {
+        const option = document.createElement('option');
+        option.value = name;
+        option.textContent = name;
+        configSelect.appendChild(option);
+        if (!firstConfigName) {
+          firstConfigName = name;
+        }
+      }
+
+      // Select the active configuration, or 'newConfig' if none
+      if (activeConfigName && allConfigs[activeConfigName]) {
+        configSelect.value = activeConfigName;
+      } else if (firstConfigName) {
+        configSelect.value = firstConfigName;
+        activeConfigName = firstConfigName; // Set the first one as active
+      } else {
+        configSelect.value = 'newConfig';
+        activeConfigName = null;
+      }
+
+      // Adjust button visibility
+      deleteButton.style.display = activeConfigName ? 'inline-flex' : 'none';
+      saveButton.disabled = (configSelect.value === 'newConfig' && !newConfigNameInput.value.trim());
+    }
+
+    function showNameInput(show = true) {
+      newConfigNameContainer.style.display = show ? 'flex' : 'none';
+      if (show) {
+        newConfigNameInput.value = ''; // Clear input when showing
+        newConfigNameInput.placeholder = translations[currentLanguage].newConfigNameInputPlaceholder;
+        confirmSaveNewConfigBtn.querySelector('span').textContent = translations[currentLanguage].confirmSaveNewConfigText;
+        newConfigNameInput.focus();
+      }
+    }
+
+    function saveCurrentConfig(configName = null) {
+      if (configSelect.value === 'newConfig' && !configName) {
+        // If "New Config" is selected and no name is provided, show the naming input
+        showNameInput(true);
+        saveButton.disabled = true; // Disable main save button until name is confirmed
+        return;
+      }
+
+      const nameToSave = configName || activeConfigName;
+
+      if (!nameToSave) {
+        showNotification(translations[currentLanguage].noConfigSelected, 'error');
+        return;
+      }
+
+      // Gather current form data
+      const formData = {
+        bankInput: parseFloat(bankInput.value),
+        daysInput: parseInt(document.getElementById('daysInput').value),
+        operationsInput: parseInt(document.getElementById('operationsInput').value),
+        moeda: moedaSelect.value,
+        ticksInput: parseFloat(ticksInput.value),
+        targetInput: parseFloat(targetInputElement.value),
+        marginInput: parseFloat(marginInput.value),
+        lotes: parseFloat(lotesInput.value),
+        recalculateOperationsInput: parseInt(recalculateOperationsInput.value),
+        originalTicksValue: originalTicksValue,
+        timestamp: new Date().toISOString()
+      };
+
+      allConfigs[nameToSave] = formData;
+      localStorage.setItem('allProjectionConfigs', JSON.stringify(allConfigs));
+
+      showNotification(translations[currentLanguage].configSaved, 'success');
+      showNameInput(false); // Hide name input after saving
+      saveButton.disabled = false; // Re-enable main save button
+
+      // After saving, make this the active config and update the select
+      activeConfigName = nameToSave;
+      populateConfigSelect();
+      configSelect.value = activeConfigName; // Ensure it's selected
+      generateProjection(); // Recalculate with saved data
+    }
+
+    function loadConfig(configName) {
+      if (configName === 'newConfig') {
+        // If 'New Configuration' is selected, reset form and prepare for naming
+        // Set only the fields that weren't set by API calls
+        bankInput.value = defaultFormValues.bankInput;
+        document.getElementById('daysInput').value = defaultFormValues.daysInput;
+        document.getElementById('operationsInput').value = defaultFormValues.operationsInput;
+        moedaSelect.value = defaultFormValues.moeda;
+        ticksInput.value = defaultFormValues.ticksInput;
+        lotesInput.value = defaultFormValues.lotes;
+        recalculateOperationsInput.value = defaultFormValues.recalculateOperationsInput;
+        originalTicksValue = defaultFormValues.originalTicksValue;
+
+        // Reload API data for fresh values
+        Promise.all([
+          fetchDollarRate(), // This will update targetInput with fresh dollar rate
+          fetchMargin(moedaSelect.value) // This will update marginInput with fresh margin
+        ]).then(() => {
+          // After both API calls complete, update the margin input
+          marginInput.value = defaultFormValues.marginInput || parseFloat(defaultMarginValue).toFixed(2);
+          // Generate projection with fresh data
+          generateProjection();
+        });
+
+        activeConfigName = null;
+        showNameInput(true);
+        saveButton.disabled = true; // Disable save until name is given
+        deleteButton.style.display = 'none'; // No config to delete
+        return; // Don't call generateProjection here, wait for API calls
+      }
+
+      showNameInput(false); // Hide naming input if loading an existing config
+      saveButton.disabled = false; // Re-enable save button
+      deleteButton.style.display = 'inline-flex'; // Show delete button
+
+      const configData = allConfigs[configName];
+      if (configData) {
+        bankInput.value = configData.bankInput;
+        document.getElementById('daysInput').value = configData.daysInput;
+        document.getElementById('operationsInput').value = configData.operationsInput;
+        moedaSelect.value = configData.moeda;
+        ticksInput.value = configData.ticksInput;
+        targetInputElement.value = configData.targetInput;
+        marginInput.value = configData.marginInput;
+        lotesInput.value = configData.lotes;
+        recalculateOperationsInput.value = configData.recalculateOperationsInput;
+        originalTicksValue = configData.originalTicksValue;
+
+        activeConfigName = configName;
+        generateProjection();
+        showNotification(translations[currentLanguage].configLoaded, 'success');
+      } else {
+        // This should ideally not happen if populateConfigSelect works correctly
+        showNotification(translations[currentLanguage].configNotFound, 'error');
+        // Set only the fields that weren't set by API calls
+        bankInput.value = defaultFormValues.bankInput;
+        document.getElementById('daysInput').value = defaultFormValues.daysInput;
+        document.getElementById('operationsInput').value = defaultFormValues.operationsInput;
+        moedaSelect.value = defaultFormValues.moeda;
+        ticksInput.value = defaultFormValues.ticksInput;
+        lotesInput.value = defaultFormValues.lotes;
+        recalculateOperationsInput.value = defaultFormValues.recalculateOperationsInput;
+        originalTicksValue = defaultFormValues.originalTicksValue;
+
+        // Reload API data for fresh values
+        Promise.all([
+          fetchDollarRate(), // This will update targetInput with fresh dollar rate
+          fetchMargin(moedaSelect.value) // This will update marginInput with fresh margin
+        ]).then(() => {
+          // After both API calls complete, update the margin input
+          marginInput.value = defaultFormValues.marginInput || parseFloat(defaultMarginValue).toFixed(2);
+          // Generate projection with fresh data
+          generateProjection();
+        });
+
+        activeConfigName = null;
+        configSelect.value = 'newConfig';
+        showNameInput(true);
+        saveButton.disabled = true;
+        deleteButton.style.display = 'none';
+        return; // Don't call generateProjection here, wait for API calls
+      }
+    }
+
+    function deleteCurrentConfig() {
+      if (!activeConfigName || configSelect.value === 'newConfig') {
+        showNotification(translations[currentLanguage].noConfigSelectedToDelete, 'info');
+        return;
+      }
+
+      if (confirm(`${translations[currentLanguage].confirmDelete} "${activeConfigName}"?`)) {
+        delete allConfigs[activeConfigName];
+        localStorage.setItem('allProjectionConfigs', JSON.stringify(allConfigs));
+        showNotification(translations[currentLanguage].configCleared, 'success');
+
+        // After deletion, reset form and reload configs
+        // Set only the fields that weren't set by API calls
+        bankInput.value = defaultFormValues.bankInput;
+        document.getElementById('daysInput').value = defaultFormValues.daysInput;
+        document.getElementById('operationsInput').value = defaultFormValues.operationsInput;
+        moedaSelect.value = defaultFormValues.moeda;
+        ticksInput.value = defaultFormValues.ticksInput;
+        lotesInput.value = defaultFormValues.lotes;
+        recalculateOperationsInput.value = defaultFormValues.recalculateOperationsInput;
+        originalTicksValue = defaultFormValues.originalTicksValue;
+
+        // Reload API data for fresh values
+        Promise.all([
+          fetchDollarRate(), // This will update targetInput with fresh dollar rate
+          fetchMargin(moedaSelect.value) // This will update marginInput with fresh margin
+        ]).then(() => {
+          // After both API calls complete, update the margin input
+          marginInput.value = defaultFormValues.marginInput || parseFloat(defaultMarginValue).toFixed(2);
+          // Generate projection with fresh data
+          generateProjection();
+        });
+
+        activeConfigName = null;
+        populateConfigSelect(); // This will select the first available config or 'newConfig'
+        return; // Don't call generateProjection here, wait for API calls
+      }
+    }
+
+    function resetFormToDefaults() {
+      bankInput.value = defaultFormValues.bankInput;
+      document.getElementById('daysInput').value = defaultFormValues.daysInput;
+      document.getElementById('operationsInput').value = defaultFormValues.operationsInput;
+      moedaSelect.value = defaultFormValues.moeda;
+      ticksInput.value = defaultFormValues.ticksInput;
+      // Don't reset targetInput if it was already calculated by API
+      if (defaultFormValues.targetInput !== null) {
+        targetInputElement.value = defaultFormValues.targetInput;
+      }
+      marginInput.value = defaultFormValues.marginInput; // Use stored default margin value
+      lotesInput.value = defaultFormValues.lotes;
+      recalculateOperationsInput.value = defaultFormValues.recalculateOperationsInput;
+      originalTicksValue = defaultFormValues.originalTicksValue;
+      // Ensure ticksInput displays correct value based on moeda
+      if (moedaSelect.value === 'USDJPY') {
+        ticksInput.value = originalTicksValue / 10;
+      } else {
+        ticksInput.value = originalTicksValue;
+      }
+    }
+
+    // --- Event Listeners and Initial Load ---
+
+    configSelect.addEventListener('change', (event) => {
+      loadConfig(event.target.value);
+    });
+
+    newConfigNameInput.addEventListener('input', () => {
+      saveButton.disabled = !newConfigNameInput.value.trim();
+    });
+
+    confirmSaveNewConfigBtn.addEventListener('click', () => {
+      const newName = newConfigNameInput.value.trim();
+      if (newName) {
+        if (allConfigs[newName]) {
+          showNotification(translations[currentLanguage].configNameExists, 'warning');
+        } else {
+          saveCurrentConfig(newName);
+        }
+      } else {
+        showNotification(translations[currentLanguage].pleaseEnterConfigName, 'warning');
+      }
+    });
 
     async function initialize() {
       showLoading();
       try {
         await fetchDollarRate();
         const margin = await fetchMargin(moedaSelect.value);
-        marginInput.value = margin !== null ? margin : parseFloat(defaultMarginValue).toFixed(2);
+        defaultFormValues.marginInput = margin !== null ? parseFloat(margin).toFixed(2) : parseFloat(defaultMarginValue).toFixed(2);
+        marginInput.value = defaultFormValues.marginInput; // Set initial margin from default
 
-        // Carregar dados salvos automaticamente ao inicializar
-        loadFormData();
+        // Load all configurations from local storage
+        const savedConfigs = localStorage.getItem('allProjectionConfigs');
+        if (savedConfigs) {
+          allConfigs = JSON.parse(savedConfigs);
+        }
 
-        generateProjection();
+        populateConfigSelect(); // Populate the select first, sets activeConfigName to first or null
+
+        // If there are saved configs, load the first one (already handled by populateConfigSelect and initial load)
+        if (activeConfigName && allConfigs[activeConfigName]) {
+          loadConfig(activeConfigName); // Load data for the determined activeConfigName
+        } else {
+          // No saved configs or 'newConfig' is selected by default
+          // Set only the fields that weren't set by API calls
+          bankInput.value = defaultFormValues.bankInput;
+          document.getElementById('daysInput').value = defaultFormValues.daysInput;
+          document.getElementById('operationsInput').value = defaultFormValues.operationsInput;
+          moedaSelect.value = defaultFormValues.moeda;
+          ticksInput.value = defaultFormValues.ticksInput;
+          lotesInput.value = defaultFormValues.lotes;
+          recalculateOperationsInput.value = defaultFormValues.recalculateOperationsInput;
+          originalTicksValue = defaultFormValues.originalTicksValue;
+
+          activeConfigName = null; // No active config
+          configSelect.value = 'newConfig'; // Ensure 'newConfig' is selected
+          showNameInput(true); // Show naming input for the first save
+          saveButton.disabled = true; // Disable save until name is given
+          // generateProjection() is already called by fetchDollarRate() and fetchMargin() above
+        }
+
+        // Apply current language strings after initial load
+        changeLanguage(currentLanguage);
+
       } finally {
         hideLoading();
       }
@@ -1597,9 +2035,15 @@
       document.getElementById('operationsHeader').textContent = t.operationsHeader;
       document.getElementById('lotHeader').textContent = t.lotHeader;
       document.getElementById('ticksHeader').textContent = t.ticksHeader;
+
+      // New translation strings
       document.getElementById('saveButtonText').textContent = t.saveButtonText;
-      document.getElementById('loadButtonText').textContent = t.loadButtonText;
-      document.getElementById('clearButtonText').textContent = t.clearButtonText;
+      document.getElementById('deleteButtonText').textContent = t.deleteButtonText;
+      document.getElementById('configSelectLabel').textContent = t.configSelectLabel;
+      document.getElementById('newConfigOption').textContent = t.newConfigOptionText;
+      document.getElementById('newConfigNameInput').placeholder = t.newConfigNameInputPlaceholder;
+      document.getElementById('confirmSaveNewConfigText').textContent = t.confirmSaveNewConfigText;
+
 
       const languageNames = {
         pt: 'Português',
@@ -1629,6 +2073,17 @@
       });
       document.querySelector(`[data-lang="${lang}"]`).classList.add('active');
       document.getElementById('languageDropdown').classList.remove('show');
+
+      // Re-populate select to update 'New Configuration' option text
+      populateConfigSelect();
+      // Ensure the currently selected config remains selected after re-population
+      if (activeConfigName) {
+        configSelect.value = activeConfigName;
+      } else {
+        configSelect.value = 'newConfig';
+      }
+
+      // Re-generate projection to update table headers and info display with new language
       generateProjection();
     }
 
@@ -1664,79 +2119,6 @@
       }
     })();
 
-    // Funções para salvar e carregar dados do localStorage
-    function saveFormData() {
-      const formData = {
-        bankInput: document.getElementById('bankInput').value,
-        daysInput: document.getElementById('daysInput').value,
-        operationsInput: document.getElementById('operationsInput').value,
-        moeda: document.getElementById('moeda').value,
-        ticksInput: document.getElementById('ticksInput').value,
-        targetInput: document.getElementById('targetInput').value,
-        marginInput: document.getElementById('marginInput').value,
-        lotes: document.getElementById('lotes').value,
-        recalculateOperationsInput: document.getElementById('recalculateOperationsInput').value,
-        originalTicksValue: originalTicksValue,
-        timestamp: new Date().toISOString()
-      };
-
-      localStorage.setItem('projectionFormData', JSON.stringify(formData));
-
-      // Mostrar mensagem de sucesso
-      const t = translations[currentLanguage];
-      showNotification(t.configSaved, 'success');
-    }
-
-    function loadFormData() {
-      const savedData = localStorage.getItem('projectionFormData');
-
-      if (savedData) {
-        try {
-          const formData = JSON.parse(savedData);
-
-          // Aplicar valores salvos aos campos
-          document.getElementById('bankInput').value = formData.bankInput || 2;
-          document.getElementById('daysInput').value = formData.daysInput || 210;
-          document.getElementById('operationsInput').value = formData.operationsInput || 1;
-          document.getElementById('moeda').value = formData.moeda || 'XAUUSD';
-          document.getElementById('ticksInput').value = formData.ticksInput || 500;
-          document.getElementById('targetInput').value = formData.targetInput || 200000.00;
-          document.getElementById('marginInput').value = formData.marginInput || '';
-          document.getElementById('lotes').value = formData.lotes || 250;
-          document.getElementById('recalculateOperationsInput').value = formData.recalculateOperationsInput || 1;
-
-          // Restaurar valor original dos ticks
-          if (formData.originalTicksValue) {
-            originalTicksValue = formData.originalTicksValue;
-          }
-
-          // Mostrar mensagem de sucesso
-          const t = translations[currentLanguage];
-          showNotification(t.configLoaded, 'success');
-
-          // Gerar projeção com os dados carregados
-          generateProjection();
-
-        } catch (error) {
-          console.error('Erro ao carregar dados salvos:', error);
-          const t = translations[currentLanguage];
-          showNotification('Erro ao carregar dados salvos', 'error');
-        }
-      } else {
-        const t = translations[currentLanguage];
-        showNotification(t.noSavedConfig, 'info');
-      }
-    }
-
-    function clearFormData() {
-      if (confirm('Tem certeza que deseja limpar a configuração salva?')) {
-        localStorage.removeItem('projectionFormData');
-
-        // Mostrar mensagem de sucesso
-        const t = translations[currentLanguage];
-        showNotification(t.configCleared, 'success');
-      }
-    }
 
     function showNotification(message, type = 'info') {
       // Remover notificação existente se houver
