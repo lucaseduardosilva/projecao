@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="pt-br">
 
@@ -1022,7 +1021,9 @@
 
           operationDetails.push({
             profit: operationProfit,
-            lot: lotUsed
+            lot: lotUsed,
+            bankAfterOperation: dayOperationsBank, // Armazena a banca após a operação
+            bankInBrlAfterOperation: dayOperationsBank * usdToBrlRate // Armazena a banca em BRL
           });
 
           if (op === 1) {
@@ -1073,7 +1074,9 @@
             `${t.operationText} ${index + 1}`,
             '', '',
             detail.profit.toFixed(2),
-            '', '', '', '',
+            detail.bankAfterOperation.toFixed(2), // Banca Total após a operação
+            detail.bankInBrlAfterOperation.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }), // Banca Total (BRL) após a operação
+            '', '',
             detail.lot.toFixed(2),
             ticksDisplay
           ]);
@@ -1206,7 +1209,7 @@
           if (dayOfWeek !== 0 && dayOfWeek !== 6) {
 
             operationsCounter = 0;
-            bank = lastDayBank;
+            bank = lastDayBank; // A banca para o dia começa com a banca final do dia anterior
             let dailyProfit = 0;
             const dayInitialBank = bank;
             let lotUsedFirstOperation = 0.01;
@@ -1226,7 +1229,7 @@
               } else {
                 selectedRows.add(day);
                 row.classList.add('selected-row');
-                let currentBank = dayInitialBank;
+                let currentBank = dayInitialBank; // Inicia com a banca inicial do dia para as operações detalhadas
 
                 const operationRows = [];
                 let totalProfit = 0;
@@ -1242,15 +1245,19 @@
                   operationLotValue = Math.max(0.01, Math.min(maxLotValue, maxPossibleLot));
 
                   const operationProfit = ticksPerOperation * tickValue * operationLotValue;
-                  currentBank += operationProfit;
+                  currentBank += operationProfit; // Atualiza a banca após cada operação
                   totalProfit += operationProfit;
+
+                  // Calcula e formata a banca total em BRL para a operação atual
+                  const currentBankInBrl = (currentBank * usdToBrlRate).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
                   operationRow.innerHTML = `
                       <td style="background-color: #f2f2f2; white-space: nowrap;">${t.operationText.trim()} ${op}</td>
                       <td style="background-color: #f2f2f2;"></td>
                       <td style="background-color: #f2f2f2;"></td>
                       <td style="background-color: #f2f2f2;">${operationProfit.toFixed(2)}</td>
-                      <td style="background-color: #f2f2f2;"></td>
-                      <td style="background-color: #f2f2f2;"></td>
+                      <td style="background-color: #f2f2f2;">${currentBank.toFixed(2)}</td>
+                      <td style="background-color: #f2f2f2;">${currentBankInBrl}</td>
                       <td style="background-color: #f2f2f2;"></td>
                       <td style="background-color: #f2f2f2;"></td>
                       <td style="background-color: #f2f2f2;">${operationLotValue.toFixed(2)}</td>
