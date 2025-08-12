@@ -13,7 +13,7 @@
     :root {
       --primary: #4361ee;
       --primary-light: #c0c0c0;
-      --primary-dark: #808080;
+      --primary-dark: #3C57D6;
       --success: #4cc9f0;
       --success-light: #d4edda;
       --warning: #f8961e;
@@ -465,7 +465,7 @@
     body.dark-theme .export-btn,
     body.dark-theme .language-btn,
     body.dark-theme .theme-toggle-btn {
-      background-color: #23262A;
+      background-color: #4361ee;
       color: #fff;
       border: 1px solid #333;
     }
@@ -473,7 +473,7 @@
     body.dark-theme .export-btn:hover,
     body.dark-theme .language-btn:hover,
     body.dark-theme .theme-toggle-btn:hover {
-      background-color: #181A1B;
+      background-color: #3C57D6;
     }
 
     body.dark-theme .language-dropdown {
@@ -637,6 +637,18 @@
         </div>
       </div>
 
+      <div style="display: flex; gap: 1rem; justify-content: center; margin-bottom: 1rem;">
+        <button id="saveButton" class="export-btn" onclick="saveFormData()">
+          <span id="saveButtonText">💾 Salvar Configuração</span>
+        </button>
+        <button id="loadButton" class="export-btn" onclick="loadFormData()" style="background-color: var(--success);">
+          <span id="loadButtonText">💾 Carregar Configuração</span>
+        </button>
+        <button id="clearButton" class="export-btn" onclick="clearFormData()" style="background-color: var(--danger);">
+          <span id="clearButtonText">🗑️ Limpar Configuração</span>
+        </button>
+      </div>
+
       <div class="info-grid">
         <div class="info-item period-info" style="display: none;">
           <span class="label" id="periodLabel">Período</span>
@@ -729,7 +741,14 @@
         operationText: "Operação",
         totalText: "Total",
         targetNotAchieved: "Meta não atingida",
-        daysOfOperation: "dias de operação"
+        daysOfOperation: "dias de operação",
+        saveButtonText: "💾 Salvar Configuração",
+        loadButtonText: "💾 Carregar Configuração",
+        clearButtonText: "🗑️ Limpar Configuração",
+        configSaved: "Configuração salva com sucesso!",
+        configLoaded: "Configuração carregada com sucesso!",
+        configCleared: "Configuração limpa com sucesso!",
+        noSavedConfig: "Nenhuma configuração salva encontrada."
       },
       en: {
         mainTitle: "Bank Projection",
@@ -761,7 +780,14 @@
         operationText: "Operation",
         totalText: "Total",
         targetNotAchieved: "Target not achieved",
-        daysOfOperation: "days of operation"
+        daysOfOperation: "days of operation",
+        saveButtonText: "💾 Save Configuration",
+        loadButtonText: "💾 Load Configuration",
+        clearButtonText: "🗑️ Clear Configuration",
+        configSaved: "Configuration saved successfully!",
+        configLoaded: "Configuration loaded successfully!",
+        configCleared: "Configuration cleared successfully!",
+        noSavedConfig: "No saved configuration found."
       },
       es: {
         mainTitle: "Proyección de Banca",
@@ -793,7 +819,14 @@
         operationText: "Operación",
         totalText: "Total",
         targetNotAchieved: "Meta no alcanzada",
-        daysOfOperation: "días de operación"
+        daysOfOperation: "días de operación",
+        saveButtonText: "💾 Guardar Configuración",
+        loadButtonText: "📂 Cargar Configuración",
+        clearButtonText: "🗑️ Limpiar Configuración",
+        configSaved: "¡Configuración guardada exitosamente!",
+        configLoaded: "¡Configuración cargada exitosamente!",
+        configCleared: "¡Configuración limpiada exitosamente!",
+        noSavedConfig: "No se encontró configuración guardada."
       },
       fr: {
         mainTitle: "Projection de Banque",
@@ -825,7 +858,14 @@
         operationText: "Opération",
         totalText: "Total",
         targetNotAchieved: "Objectif non atteint",
-        daysOfOperation: "jours d'opération"
+        daysOfOperation: "jours d'opération",
+        saveButtonText: "💾 Sauvegarder Configuration",
+        loadButtonText: "📂 Charger Configuration",
+        clearButtonText: "🗑️ Effacer Configuration",
+        configSaved: "Configuration sauvegardée avec succès !",
+        configLoaded: "Configuration chargée avec succès !",
+        configCleared: "Configuration effacée avec succès !",
+        noSavedConfig: "Aucune configuration sauvegardée trouvée."
       },
       de: {
         mainTitle: "Bank-Projektion",
@@ -857,7 +897,14 @@
         operationText: "Operation",
         totalText: "Gesamt",
         targetNotAchieved: "Ziel nicht erreicht",
-        daysOfOperation: "Handelstage"
+        daysOfOperation: "Handelstage",
+        saveButtonText: "💾 Konfiguration Speichern",
+        loadButtonText: "📂 Konfiguration Laden",
+        clearButtonText: "🗑️ Konfiguration Löschen",
+        configSaved: "Konfiguration erfolgreich gespeichert!",
+        configLoaded: "Konfiguration erfolgreich geladen!",
+        configCleared: "Konfiguration erfolgreich gelöscht!",
+        noSavedConfig: "Keine gespeicherte Konfiguration gefunden."
       },
       it: {
         mainTitle: "Proiezione Banca",
@@ -889,7 +936,14 @@
         operationText: "Operazione",
         totalText: "Totale",
         targetNotAchieved: "Obiettivo non raggiunto",
-        daysOfOperation: "giorni di operazione"
+        daysOfOperation: "giorni di operazione",
+        saveButtonText: "💾 Salva Configurazione",
+        loadButtonText: "📂 Carica Configurazione",
+        clearButtonText: "🗑️ Cancella Configurazione",
+        configSaved: "Configurazione salvata con successo!",
+        configLoaded: "Configurazione caricata con successo!",
+        configCleared: "Configurazione cancellata con successo!",
+        noSavedConfig: "Nessuna configurazione salvata trovata."
       },
       ru: {
         mainTitle: "Проекция Банка",
@@ -921,7 +975,14 @@
         operationText: "Операция",
         totalText: "Итого",
         targetNotAchieved: "Цель не достигнута",
-        daysOfOperation: "дней торговли"
+        daysOfOperation: "дней торговли",
+        saveButtonText: "💾 Сохранить Конфигурацию",
+        loadButtonText: "📂 Загрузить Конфигурацию",
+        clearButtonText: "🗑️ Очистить Конфигурацию",
+        configSaved: "Конфигурация успешно сохранена!",
+        configLoaded: "Конфигурация успешно загружена!",
+        configCleared: "Конфигурация успешно очищена!",
+        noSavedConfig: "Сохраненная конфигурация не найдена."
       },
       zh: {
         mainTitle: "银行预测",
@@ -953,7 +1014,14 @@
         operationText: "操作",
         totalText: "总计",
         targetNotAchieved: "目标未达成",
-        daysOfOperation: "个交易日"
+        daysOfOperation: "个交易日",
+        saveButtonText: "💾 保存配置",
+        loadButtonText: "📂 加载配置",
+        clearButtonText: "🗑️ 清除配置",
+        configSaved: "配置保存成功！",
+        configLoaded: "配置加载成功！",
+        configCleared: "配置清除成功！",
+        noSavedConfig: "未找到保存的配置。"
       }
     };
 
@@ -1021,9 +1089,7 @@
 
           operationDetails.push({
             profit: operationProfit,
-            lot: lotUsed,
-            bankAfterOperation: dayOperationsBank, // Armazena a banca após a operação
-            bankInBrlAfterOperation: dayOperationsBank * usdToBrlRate // Armazena a banca em BRL
+            lot: lotUsed
           });
 
           if (op === 1) {
@@ -1315,6 +1381,7 @@
             let dayDisplay = dayCounter;
             let dailyProfitValue = 0;
 
+            // Calcular as operações do dia e acumular a banca
             for (let op = 1; op <= operationsPerDay; op++) {
               let maxPossibleLot = Math.floor(bank / marginValue) * 0.01;
               let lotUsed = Math.max(0.01, Math.min(maxLotValue, maxPossibleLot));
@@ -1367,7 +1434,7 @@
             tableBody.appendChild(row);
             businessDays++;
             dayCounter++;
-            lastDayBank = bank;
+            lastDayBank = bank; // Atualiza a banca final do dia para o próximo dia
           }
           currentDate.setDate(currentDate.getDate() + 1);
 
@@ -1485,6 +1552,10 @@
         await fetchDollarRate();
         const margin = await fetchMargin(moedaSelect.value);
         marginInput.value = margin !== null ? margin : parseFloat(defaultMarginValue).toFixed(2);
+
+        // Carregar dados salvos automaticamente ao inicializar
+        loadFormData();
+
         generateProjection();
       } finally {
         hideLoading();
@@ -1526,6 +1597,9 @@
       document.getElementById('operationsHeader').textContent = t.operationsHeader;
       document.getElementById('lotHeader').textContent = t.lotHeader;
       document.getElementById('ticksHeader').textContent = t.ticksHeader;
+      document.getElementById('saveButtonText').textContent = t.saveButtonText;
+      document.getElementById('loadButtonText').textContent = t.loadButtonText;
+      document.getElementById('clearButtonText').textContent = t.clearButtonText;
 
       const languageNames = {
         pt: 'Português',
@@ -1558,7 +1632,7 @@
       generateProjection();
     }
 
-    document.addEventListener('click', function(event) {
+    document.addEventListener('click', function (event) {
       const dropdown = document.getElementById('languageDropdown');
       const button = document.querySelector('.language-btn');
       if (!dropdown.contains(event.target) && !button.contains(event.target)) {
@@ -1581,7 +1655,7 @@
       const isDark = document.body.classList.contains('dark-theme');
       setTheme(isDark ? 'light' : 'dark');
     }
-    (function() {
+    (function () {
       const savedTheme = localStorage.getItem('theme');
       if (savedTheme === 'dark') {
         setTheme('dark');
@@ -1589,6 +1663,169 @@
         setTheme('light');
       }
     })();
+
+    // Funções para salvar e carregar dados do localStorage
+    function saveFormData() {
+      const formData = {
+        bankInput: document.getElementById('bankInput').value,
+        daysInput: document.getElementById('daysInput').value,
+        operationsInput: document.getElementById('operationsInput').value,
+        moeda: document.getElementById('moeda').value,
+        ticksInput: document.getElementById('ticksInput').value,
+        targetInput: document.getElementById('targetInput').value,
+        marginInput: document.getElementById('marginInput').value,
+        lotes: document.getElementById('lotes').value,
+        recalculateOperationsInput: document.getElementById('recalculateOperationsInput').value,
+        originalTicksValue: originalTicksValue,
+        timestamp: new Date().toISOString()
+      };
+
+      localStorage.setItem('projectionFormData', JSON.stringify(formData));
+
+      // Mostrar mensagem de sucesso
+      const t = translations[currentLanguage];
+      showNotification(t.configSaved, 'success');
+    }
+
+    function loadFormData() {
+      const savedData = localStorage.getItem('projectionFormData');
+
+      if (savedData) {
+        try {
+          const formData = JSON.parse(savedData);
+
+          // Aplicar valores salvos aos campos
+          document.getElementById('bankInput').value = formData.bankInput || 2;
+          document.getElementById('daysInput').value = formData.daysInput || 210;
+          document.getElementById('operationsInput').value = formData.operationsInput || 1;
+          document.getElementById('moeda').value = formData.moeda || 'XAUUSD';
+          document.getElementById('ticksInput').value = formData.ticksInput || 500;
+          document.getElementById('targetInput').value = formData.targetInput || 200000.00;
+          document.getElementById('marginInput').value = formData.marginInput || '';
+          document.getElementById('lotes').value = formData.lotes || 250;
+          document.getElementById('recalculateOperationsInput').value = formData.recalculateOperationsInput || 1;
+
+          // Restaurar valor original dos ticks
+          if (formData.originalTicksValue) {
+            originalTicksValue = formData.originalTicksValue;
+          }
+
+          // Mostrar mensagem de sucesso
+          const t = translations[currentLanguage];
+          showNotification(t.configLoaded, 'success');
+
+          // Gerar projeção com os dados carregados
+          generateProjection();
+
+        } catch (error) {
+          console.error('Erro ao carregar dados salvos:', error);
+          const t = translations[currentLanguage];
+          showNotification('Erro ao carregar dados salvos', 'error');
+        }
+      } else {
+        const t = translations[currentLanguage];
+        showNotification(t.noSavedConfig, 'info');
+      }
+    }
+
+    function clearFormData() {
+      if (confirm('Tem certeza que deseja limpar a configuração salva?')) {
+        localStorage.removeItem('projectionFormData');
+
+        // Mostrar mensagem de sucesso
+        const t = translations[currentLanguage];
+        showNotification(t.configCleared, 'success');
+      }
+    }
+
+    function showNotification(message, type = 'info') {
+      // Remover notificação existente se houver
+      const existingNotification = document.querySelector('.notification');
+      if (existingNotification) {
+        existingNotification.remove();
+      }
+
+      // Criar nova notificação
+      const notification = document.createElement('div');
+      notification.className = `notification notification-${type}`;
+      notification.textContent = message;
+
+      // Adicionar estilos
+      notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 1rem 1.5rem;
+        border-radius: var(--border-radius);
+        color: white;
+        font-weight: 500;
+        z-index: 10000;
+        animation: slideIn 0.3s ease-out;
+        max-width: 300px;
+        word-wrap: break-word;
+      `;
+
+      // Definir cor baseada no tipo
+      switch (type) {
+        case 'success':
+          notification.style.backgroundColor = 'var(--success)';
+          break;
+        case 'error':
+          notification.style.backgroundColor = 'var(--danger)';
+          break;
+        case 'warning':
+          notification.style.backgroundColor = 'var(--warning)';
+          break;
+        default:
+          notification.style.backgroundColor = 'var(--primary)';
+      }
+
+      // Adicionar ao body
+      document.body.appendChild(notification);
+
+      // Remover após 3 segundos
+      setTimeout(() => {
+        if (notification.parentNode) {
+          notification.style.animation = 'slideOut 0.3s ease-in';
+          setTimeout(() => {
+            if (notification.parentNode) {
+              notification.remove();
+            }
+          }, 300);
+        }
+      }, 3000);
+    }
+
+    // Adicionar estilos CSS para as animações das notificações
+    const style = document.createElement('style');
+    style.textContent = `
+      @keyframes slideIn {
+        from {
+          transform: translateX(100%);
+          opacity: 0;
+        }
+        to {
+          transform: translateX(0);
+          opacity: 1;
+        }
+      }
+      
+      @keyframes slideOut {
+        from {
+          transform: translateX(0);
+          opacity: 1;
+        }
+        to {
+          transform: translateX(100%);
+          opacity: 0;
+        }
+      }
+      
+      .notification {
+        box-shadow: var(--box-shadow);
+      }
+    `;
+    document.head.appendChild(style);
   </script>
 </body>
 
