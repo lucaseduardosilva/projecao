@@ -253,7 +253,7 @@
     }
 
     tr.green-row {
-      background-color: rgba(76, 201, 240, 0.1) !important;
+      background-color: #4DF14D !important;
     }
 
     tr.green-row td {
@@ -502,8 +502,8 @@
     }
 
     body.dark-theme tr.green-row td {
-      background-color: #22336b !important;
-      color: #fff;
+      background-color: #3CB371 !important;
+      color: var(--dark);
     }
 
     body.dark-theme tr.current-day-row td {
@@ -698,6 +698,7 @@
         <table id="projectionTable">
           <thead>
             <tr>
+              <th></th> <!-- New column for checkbox -->
               <th id="dayHeader">Dia</th>
               <th id="initialBankHeader">Banca Inicial</th>
               <th id="dailyProfitHeader">Lucro do Dia</th>
@@ -741,6 +742,7 @@
 
     let allConfigs = {}; // Stores all saved configurations
     let activeConfigName = null; // Name of the currently loaded configuration
+    let currentCheckboxStates = {}; // Will hold checkbox states for the active configuration (day_op: true/false)
 
     // Default values for form fields (useful for 'newConfig' or clearing)
     const defaultFormValues = {
@@ -1179,6 +1181,7 @@
 
 
       const headers = [
+        '', // For the checkbox column
         t.dayHeader, t.initialBankHeader, t.dailyProfitHeader, t.profitPerOperationHeader,
         t.totalBankHeader, t.totalBankBrlHeader, t.targetPercentageHeader,
         t.operationsHeader, t.lotHeader, t.ticksHeader
@@ -1243,6 +1246,7 @@
         const ticksDisplay = moeda === 'USDJPY' ? (ticksPerOperation / 10).toFixed(0) : ticksPerOperation;
 
         body.push([
+          '', // Empty for the checkbox column in main row
           dayCounter,
           dayInitialBank.toFixed(2),
           dailyProfit.toFixed(2),
@@ -1258,6 +1262,7 @@
         // Iterate through operationDetailsForPdf for detailed rows in PDF
         operationDetailsForPdf.forEach((detail, index) => {
           body.push([
+            '', // Empty for the checkbox column in operation row
             `${t.operationText} ${index + 1}`,
             '', '',
             detail.profit.toFixed(2),
@@ -1274,6 +1279,7 @@
 
         if (operationsPerDay > 1) {
           body.push([
+            '', // Empty for the checkbox column in total row
             t.totalText,
             '', '',
             dailyProfit.toFixed(2), // Total profit for the day (dailyProfit already accumulates)
@@ -1303,9 +1309,9 @@
         didParseCell: (data) => {
           if (data.section === 'body') {
             // Check if it's a main day row
-            const isMainDayRow = !isNaN(parseInt(data.row.raw[0])) && !String(data.row.raw[0]).includes(t.operationText.trim()) && data.row.raw[0] !== t.totalText;
-            const isOperationRow = String(data.row.raw[0]).includes(t.operationText.trim());
-            const isTotalRow = data.row.raw[0] === t.totalText;
+            const isMainDayRow = !isNaN(parseInt(data.row.raw[1])) && !String(data.row.raw[1]).includes(t.operationText.trim()) && data.row.raw[1] !== t.totalText;
+            const isOperationRow = String(data.row.raw[1]).includes(t.operationText.trim());
+            const isTotalRow = data.row.raw[1] === t.totalText;
 
             if (isMainDayRow) {
               data.cell.styles.fillColor = [245, 245, 245];
@@ -1412,88 +1418,6 @@
             const row = document.createElement("tr");
             row.dataset.day = dayCounter;
 
-            row.addEventListener('click', () => {
-              const day = row.dataset.day;
-              if (selectedRows.has(day)) {
-                selectedRows.delete(day);
-                row.classList.remove('selected-row');
-                document.querySelectorAll(`tr[data-parent-day="${day}"]`).forEach(el => el.remove());
-              } else {
-                selectedRows.add(day);
-                row.classList.add('selected-row');
-                let currentBankAtStartOfOperationsForDisplay = dayInitialBank; // Use initial bank of the day for detailed display
-
-                const operationRows = [];
-                const t = translations[currentLanguage];
-
-                for (let op = 1; op <= operationsPerDay; op++) {
-                  const operationRow = document.createElement("tr");
-                  operationRow.classList.add("operation-row");
-                  operationRow.dataset.parentDay = day;
-
-                  let operationLotValue = 0.01;
-                  let maxPossibleLot = Math.floor(currentBankAtStartOfOperationsForDisplay / marginValue) * 0.01;
-                  operationLotValue = Math.max(0.01, Math.min(maxLotValue, maxPossibleLot));
-
-                  const operationProfit = ticksPerOperation * tickValue * operationLotValue;
-                  currentBankAtStartOfOperationsForDisplay += operationProfit; // Update bank after each operation
-
-                  const currentBankInBrl = (currentBankAtStartOfOperationsForDisplay * usdToBrlRate).toLocaleString('pt-BR', {
-                    style: 'currency',
-                    currency: 'BRL'
-                  });
-
-                  operationRow.innerHTML = `
-                      <td style="background-color: var(--gray-50); white-space: nowrap;">${t.operationText.trim()} ${op}</td>
-                      <td style="background-color: var(--gray-50);"></td>
-                      <td style="background-color: var(--gray-50);"></td>
-                      <td style="background-color: var(--gray-50);">${operationProfit.toFixed(2)}</td>
-                      <td style="background-color: var(--gray-50);">${currentBankAtStartOfOperationsForDisplay.toFixed(2)}</td>
-                      <td style="background-color: var(--gray-50);"> ${currentBankInBrl}</td>
-                      <td style="background-color: var(--gray-50);"></td>
-                      <td style="background-color: var(--gray-50);"></td>
-                      <td style="background-color: var(--gray-50);"> ${operationLotValue.toFixed(2)}</td>
-                      <td style="background-color: var(--gray-50);"> ${ticksPerOperation}</td>
-                  `;
-                  operationRows.push(operationRow);
-                }
-
-                if (operationsPerDay > 1) {
-                  const totalRow = document.createElement("tr");
-                  totalRow.classList.add("operation-row");
-                  totalRow.dataset.parentDay = day;
-                  // Recalculate total profit for the day to display correctly in total row
-                  let reCalcDailyProfit = 0;
-                  let tempBankForTotal = dayInitialBank;
-                  for (let op = 1; op <= operationsPerDay; op++) {
-                    let maxPossibleLot = Math.floor(tempBankForTotal / marginValue) * 0.01;
-                    let lotUsed = Math.max(0.01, Math.min(maxLotValue, maxPossibleLot));
-                    const operationProfit = ticksPerOperation * tickValue * lotUsed;
-                    tempBankForTotal += operationProfit;
-                    reCalcDailyProfit += operationProfit;
-                  }
-
-                  totalRow.innerHTML = `
-                      <td style="background-color: var(--gray-50); font-weight: 600;">${t.totalText}</td>
-                      <td style="background-color: var(--gray-50);"></td>
-                      <td style="background-color: var(--gray-50);"></td>
-                      <td style="background-color: var(--gray-50); font-weight: 600;">${reCalcDailyProfit.toFixed(2)}</td>
-                      <td style="background-color: var(--gray-50);"></td>
-                      <td style="background-color: var(--gray-50);"></td>
-                      <td style="background-color: var(--gray-50);"></td>
-                      <td style="background-color: var(--gray-50);"></td>
-                      <td style="background-color: var(--gray-50);"></td>
-                      <td style="background-color: var(--gray-50);"></td>
-                  `;
-                  operationRows.push(totalRow);
-                }
-
-                for (let i = operationRows.length - 1; i >= 0; i--) {
-                  tableBody.insertBefore(operationRows[i], row.nextSibling);
-                }
-              }
-            });
-
             const formatDate = (date) => {
               const year = date.getFullYear();
               const month = String(date.getMonth() + 1).padStart(2, "0");
@@ -1562,6 +1486,7 @@
             }
 
             row.innerHTML = `
+                <td></td> <!-- Empty for the checkbox column on main day row -->
                 <td>${dayDisplay}</td>
                 <td>${dayInitialBank.toFixed(2)}</td>
                 <td>${dailyProfit.toFixed(2)}</td>
@@ -1574,7 +1499,126 @@
                 <td>${ticksDisplay}</td>
               `;
 
-            tableBody.appendChild(row);
+            tableBody.appendChild(row); // Append the main day row first
+
+            let currentBankAtStartOfOperationsForDisplay = dayInitialBank; // Use initial bank of the day for detailed display
+            const t = translations[currentLanguage];
+            let allOperationsCheckedForThisDay = true; // Assume true, prove false
+
+            for (let op = 1; op <= operationsPerDay; op++) {
+              const operationRow = document.createElement("tr");
+              operationRow.classList.add("operation-row");
+              operationRow.dataset.parentDay = dayCounter;
+              operationRow.style.display = 'none'; // Initially hidden
+
+              let operationLotValue = 0.01;
+              let maxPossibleLot = Math.floor(currentBankAtStartOfOperationsForDisplay / marginValue) * 0.01;
+              operationLotValue = Math.max(0.01, Math.min(maxLotValue, maxPossibleLot));
+
+              const operationProfit = ticksPerOperation * tickValue * operationLotValue;
+              currentBankAtStartOfOperationsForDisplay += operationProfit; // Update bank after each operation
+
+              const currentBankInBrl = (currentBankAtStartOfOperationsForDisplay * usdToBrlRate).toLocaleString('pt-BR', {
+                style: 'currency',
+                currency: 'BRL'
+              });
+
+              const checkboxId = `checkbox_day${dayCounter}_op${op}`;
+              const isChecked = currentCheckboxStates[`${dayCounter}_${op}`] || false; // Get state from loaded config
+
+              if (!isChecked) {
+                allOperationsCheckedForThisDay = false; // If any is not checked, the day is not complete
+              }
+
+              operationRow.innerHTML = `
+                      <td style="background-color: var(--gray-50); width: 30px;"><input type="checkbox" id="${checkboxId}" data-day="${dayCounter}" data-op="${op}" ${isChecked ? 'checked' : ''}></td>
+                      <td style="background-color: var(--gray-50); white-space: nowrap;">${t.operationText.trim()} ${op}</td>
+                      <td style="background-color: var(--gray-50);"></td>
+                      <td style="background-color: var(--gray-50);"></td>
+                      <td style="background-color: var(--gray-50);">${operationProfit.toFixed(2)}</td>
+                      <td style="background-color: var(--gray-50);">${currentBankAtStartOfOperationsForDisplay.toFixed(2)}</td>
+                      <td style="background-color: var(--gray-50);"> ${currentBankInBrl}</td>
+                      <td style="background-color: var(--gray-50);"></td>
+                      <td style="background-color: var(--gray-50);"></td>
+                      <td style="background-color: var(--gray-50);"> ${operationLotValue.toFixed(2)}</td>
+                      <td style="background-color: var(--gray-50);"> ${ticksPerOperation}</td>
+                  `;
+              tableBody.appendChild(operationRow); // Append operation row
+
+              // Add event listener immediately
+              const checkboxElement = operationRow.querySelector(`#${checkboxId}`);
+              if (checkboxElement) {
+                checkboxElement.addEventListener('change', handleCheckboxChange);
+              }
+            }
+
+            if (operationsPerDay > 1) {
+              const totalRow = document.createElement("tr");
+              totalRow.classList.add("operation-row");
+              totalRow.dataset.parentDay = dayCounter;
+              totalRow.style.display = 'none'; // Initially hidden
+              // Recalculate total profit for the day to display correctly in total row
+              let reCalcDailyProfit = 0;
+              let tempBankForTotal = dayInitialBank;
+              for (let op = 1; op <= operationsPerDay; op++) {
+                let maxPossibleLot = Math.floor(tempBankForTotal / marginValue) * 0.01;
+                let lotUsed = Math.max(0.01, Math.min(maxLotValue, maxPossibleLot));
+                const operationProfit = ticksPerOperation * tickValue * lotUsed;
+                tempBankForTotal += operationProfit;
+                reCalcDailyProfit += operationProfit;
+              }
+
+              totalRow.innerHTML = `
+                      <td style="background-color: var(--gray-50);"></td> <!-- Empty for the checkbox column -->
+                      <td style="background-color: var(--gray-50); font-weight: 600;">${t.totalText}</td>
+                      <td style="background-color: var(--gray-50);"></td>
+                      <td style="background-color: var(--gray-50); font-weight: 600;">${reCalcDailyProfit.toFixed(2)}</td>
+                      <td style="background-color: var(--gray-50);"></td>
+                      <td style="background-color: var(--gray-50);"></td>
+                      <td style="background-color: var(--gray-50);"></td>
+                      <td style="background-color: var(--gray-50);"></td>
+                      <td style="background-color: var(--gray-50);"></td>
+                      <td style="background-color: var(--gray-50);"></td>
+                  `;
+              tableBody.appendChild(totalRow);
+            }
+
+            // After all operations and total row are added for the current day,
+            // check if the main row should be green based on initial states
+            if (allOperationsCheckedForThisDay && operationsPerDay > 0) { // Only if there are operations
+              row.classList.add("green-row");
+            } else {
+              row.classList.remove("green-row");
+            }
+
+            // Original event listener modified
+            row.addEventListener('click', (event) => {
+              // Check if the click was on the checkbox itself (to prevent double handling)
+              if (event.target.type === 'checkbox') {
+                return; // Let the checkbox's own event listener handle it
+              }
+
+              const clickedDay = row.dataset.day;
+              const isSelected = selectedRows.has(clickedDay);
+
+              if (isSelected) {
+                selectedRows.delete(clickedDay);
+                row.classList.remove('selected-row');
+                // Hide operation rows
+                document.querySelectorAll(`tr[data-parent-day="${clickedDay}"]`).forEach(el => {
+                  el.style.display = 'none';
+                });
+              } else {
+                selectedRows.add(clickedDay);
+                row.classList.add('selected-row');
+                // Show operation rows
+                document.querySelectorAll(`tr[data-parent-day="${clickedDay}"]`).forEach(el => {
+                  el.style.display = 'table-row'; // Use 'table-row' for tr elements
+                });
+              }
+            });
+
+
             businessDays++;
             dayCounter++;
             lastDayBank = bank; // Update the final bank of the current day for the next day's initial bank
@@ -1589,7 +1633,7 @@
         if (lastPassedDay) {
           lastPassedDay.row.classList.remove("passed-day-row");
           lastPassedDay.row.classList.add("last-passed-day-row");
-          lastPassedDay.row.querySelector("td:first-child").textContent = lastPassedDay.day;
+          lastPassedDay.row.querySelector("td:nth-child(2)").textContent = lastPassedDay.day; // Update to nth-child(2) for 'Day' column
         }
 
         const formattedBankValue = new Intl.NumberFormat("en-US", {
@@ -1605,6 +1649,46 @@
         hideLoading();
       }
     }
+
+    // Function to handle checkbox changes
+    function handleCheckboxChange(event) {
+      const checkbox = event.target;
+      const day = parseInt(checkbox.dataset.day);
+      const op = parseInt(checkbox.dataset.op);
+      const key = `${day}_${op}`;
+
+      currentCheckboxStates[key] = checkbox.checked;
+
+      // Save updated states to localStorage within the active config
+      if (activeConfigName && allConfigs[activeConfigName]) {
+        allConfigs[activeConfigName].checkboxStates = currentCheckboxStates;
+        localStorage.setItem('allProjectionConfigs', JSON.stringify(allConfigs));
+      }
+
+      updateParentRowColor(day);
+    }
+
+    // Function to update parent row color based on child checkboxes
+    function updateParentRowColor(day) {
+      const parentRow = document.querySelector(`tr[data-day="${day}"]`);
+      if (!parentRow) return;
+
+      const checkboxes = document.querySelectorAll(`tr[data-parent-day="${day}"] input[type="checkbox"]`);
+      // If there are no operations for this day, it cannot be "all checked"
+      if (checkboxes.length === 0) {
+        parentRow.classList.remove("green-row");
+        return;
+      }
+
+      const allChecked = Array.from(checkboxes).every(checkbox => checkbox.checked);
+
+      if (allChecked) {
+        parentRow.classList.add("green-row");
+      } else {
+        parentRow.classList.remove("green-row");
+      }
+    }
+
 
     async function fetchDollarRate() {
       try {
@@ -1769,6 +1853,7 @@
         lotes: parseFloat(lotesInput.value),
         recalculateOperationsInput: parseInt(recalculateOperationsInput.value),
         originalTicksValue: originalTicksValue,
+        checkboxStates: currentCheckboxStates, // Save the current state of checkboxes
         timestamp: new Date().toISOString()
       };
 
@@ -1783,7 +1868,7 @@
       activeConfigName = nameToSave;
       populateConfigSelect();
       configSelect.value = activeConfigName; // Ensure it's selected
-      generateProjection(); // Recalculate with saved data
+      generateProjection(); // Recalculate with saved data (will apply checkbox states)
     }
 
     function loadConfig(configName) {
@@ -1798,6 +1883,7 @@
         lotesInput.value = defaultFormValues.lotes;
         recalculateOperationsInput.value = defaultFormValues.recalculateOperationsInput;
         originalTicksValue = defaultFormValues.originalTicksValue;
+        currentCheckboxStates = {}; // Clear checkbox states for new config
 
         // Reload API data for fresh values
         Promise.all([
@@ -1833,9 +1919,10 @@
         lotesInput.value = configData.lotes;
         recalculateOperationsInput.value = configData.recalculateOperationsInput;
         originalTicksValue = configData.originalTicksValue;
+        currentCheckboxStates = configData.checkboxStates || {}; // Load, or initialize if not present
 
         activeConfigName = configName;
-        generateProjection();
+        generateProjection(); // This will rebuild the table with loaded checkbox states
         showNotification(translations[currentLanguage].configLoaded, 'success');
       } else {
         // This should ideally not happen if populateConfigSelect works correctly
@@ -1849,6 +1936,7 @@
         lotesInput.value = defaultFormValues.lotes;
         recalculateOperationsInput.value = defaultFormValues.recalculateOperationsInput;
         originalTicksValue = defaultFormValues.originalTicksValue;
+        currentCheckboxStates = {}; // Clear if config not found
 
         // Reload API data for fresh values
         Promise.all([
@@ -1891,6 +1979,7 @@
         lotesInput.value = defaultFormValues.lotes;
         recalculateOperationsInput.value = defaultFormValues.recalculateOperationsInput;
         originalTicksValue = defaultFormValues.originalTicksValue;
+        currentCheckboxStates = {}; // Clear checkbox states
 
         // Reload API data for fresh values
         Promise.all([
@@ -1929,6 +2018,7 @@
       } else {
         ticksInput.value = originalTicksValue;
       }
+      currentCheckboxStates = {}; // Reset checkbox states
     }
 
     // --- Event Listeners and Initial Load ---
@@ -1984,12 +2074,13 @@
           lotesInput.value = defaultFormValues.lotes;
           recalculateOperationsInput.value = defaultFormValues.recalculateOperationsInput;
           originalTicksValue = defaultFormValues.originalTicksValue;
+          currentCheckboxStates = {}; // Initialize empty for new config
 
           activeConfigName = null; // No active config
           configSelect.value = 'newConfig'; // Ensure 'newConfig' is selected
           showNameInput(true); // Show naming input for the first save
           saveButton.disabled = true; // Disable save until name is given
-          // generateProjection() is already called by fetchDollarRate() and fetchMargin() above
+          generateProjection(); // Call explicitly for new config initialization
         }
 
         // Apply current language strings after initial load
