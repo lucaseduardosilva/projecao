@@ -1,0 +1,2271 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Projeção de Banca</title>
+  <link rel="icon" type="image/png" href="favicon.png">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.3.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.13/jspdf.plugin.autotable.min.js"></script>
+  <style>
+    :root {
+      --primary: #4361ee;
+      --primary-light: #c0c0c0;
+      --primary-dark: #3C57D6;
+      --success: #4cc9f0;
+      --success-light: #d4edda;
+      --warning: #f8961e;
+      --danger: #f94144;
+      --light: #f8f9fa;
+      --dark: #212529;
+      --gray-100: #f8f9fa;
+      --gray-200: #e9ecef;
+      --gray-300: #dee2e6;
+      --gray-400: #ced4da;
+      --gray-500: #adb5bd;
+      --gray-600: #6c757d;
+      --gray-700: #495057;
+      --gray-800: #343a40;
+      --gray-900: #212529;
+      --border-radius: 0.5rem;
+      --box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.08);
+      --transition: all 0.2s ease-in-out;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: "Inter", sans-serif;
+      background-color: var(--gray-100);
+      color: var(--gray-800);
+      line-height: 1.5;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem 1rem;
+      min-height: 100vh;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    h2 {
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--gray-900);
+      margin-bottom: 1.5rem;
+      text-align: center;
+    }
+
+    .card {
+      background-color: white;
+      border-radius: var(--border-radius);
+      box-shadow: var(--box-shadow);
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+      transition: var(--transition);
+    }
+
+    .card:hover {
+      box-shadow: 0 0.75rem 1.5rem rgba(0, 0, 0, 0.1);
+    }
+
+    .input-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    @media (min-width: 769px) {
+      .input-grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
+
+      .input-group.larger-field {
+        grid-column: span 1;
+      }
+
+      .input-group:nth-child(1),
+      .input-group:nth-child(2),
+      .input-group:nth-child(3) {
+        grid-column: span 1;
+      }
+
+      .input-group:nth-child(4),
+      .input-group:nth-child(5),
+      .input-group:nth-child(6) {
+        grid-column: span 1;
+      }
+
+      .input-group:nth-child(7),
+      .input-group:nth-child(8),
+      .input-group:nth-child(9) {
+        grid-column: span 1;
+      }
+    }
+
+    .input-group {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .input-group label {
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      color: var(--gray-700);
+      font-size: 0.875rem;
+    }
+
+    .input-group input,
+    .input-group select {
+      padding: 0.75rem;
+      border: 1px solid var(--gray-300);
+      border-radius: var(--border-radius);
+      font-size: 0.875rem;
+      transition: var(--transition);
+      color: var(--gray-800);
+      background-color: white;
+    }
+
+    .input-group input:focus,
+    .input-group select:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.15);
+    }
+
+    .info-grid {
+      display: flex;
+      flex-direction: row;
+      gap: 1.5rem;
+      margin-top: 1.5rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid var(--gray-200);
+    }
+
+    @media (max-width: 768px) {
+      .info-grid {
+        flex-direction: column;
+      }
+    }
+
+    .info-item {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .info-item .label {
+      font-weight: 600;
+      font-size: 0.875rem;
+      color: var(--gray-600);
+      margin-bottom: 0.25rem;
+    }
+
+    .info-item .value {
+      font-weight: 700;
+      font-size: 1.125rem;
+      color: var(--gray-900);
+    }
+
+    .table-card {
+      overflow: hidden;
+      margin-bottom: 2rem;
+    }
+
+    .table-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 1.5rem;
+      background-color: var(--gray-100);
+      border-bottom: 1px solid var(--gray-200);
+    }
+
+    .table-title {
+      font-weight: 600;
+      font-size: 1rem;
+      color: var(--gray-800);
+    }
+
+    .export-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0.5rem 1rem;
+      background-color: var(--primary);
+      color: white;
+      border: none;
+      border-radius: var(--border-radius);
+      font-weight: 500;
+      font-size: 0.875rem;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+
+    .export-btn:hover {
+      background-color: var(--primary-dark);
+    }
+
+    .table-container {
+      overflow-x: auto;
+      max-height: 500px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th {
+      background-color: var(--gray-100);
+      color: var(--gray-700);
+      font-weight: 600;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 0.75rem 1rem;
+      text-align: left;
+      border-bottom: 1px solid var(--gray-300);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    td {
+      padding: 0.75rem 1rem;
+      border-bottom: 1px solid var(--gray-200);
+      font-size: 0.875rem;
+      color: var(--gray-800);
+    }
+
+    tr:hover td {
+      background-color: var(--gray-50);
+    }
+
+    tr.green-row {
+      background-color: #4DF14D !important;
+    }
+
+    tr.green-row td {
+      font-weight: 600;
+      color: var(--primary-dark);
+    }
+
+    tr.current-day-row td {
+      background-color: rgba(67, 97, 238, 0.1) !important;
+    }
+
+    tr.passed-day-row td {
+      background-color: var(--gray-50);
+    }
+
+    tr.passed-day-row td {
+      color: var(--gray-800);
+      background-color: var(--gray-50);
+    }
+
+    tr.last-passed-day-row td {
+      background-color: white !important;
+      font-weight: normal;
+    }
+
+    .info-item.period-info {
+      display: none;
+    }
+
+    #loading {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 1.5rem;
+    }
+
+    .loader {
+      border: 5px solid #f3f3f3;
+      border-top: 5px solid var(--primary);
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      animation: spin 2s linear infinite;
+      margin-bottom: 1rem;
+    }
+
+    @keyframes spin {
+      0% {
+        transform: rotate(0deg);
+      }
+
+      100% {
+        transform: rotate(360deg);
+      }
+    }
+
+    .selected-row td {
+      background-color: var(--primary-light) !important;
+    }
+
+    .operation-row {
+      background-color: var(--gray-50);
+    }
+
+    .operation-row td {
+      padding-left: 2rem;
+      font-size: 0.75rem;
+    }
+
+    .language-selector {
+      display: flex;
+      flex-direction: row;
+      align-items: flex-start;
+      gap: 16px;
+      position: fixed;
+      top: 1rem;
+      right: 1rem;
+      z-index: 100;
+    }
+
+    @media (max-width: 600px) {
+      .language-selector {
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 16px;
+      }
+    }
+
+    .language-btn {
+      background-color: var(--primary);
+      color: white;
+      border: none;
+      border-radius: var(--border-radius);
+      padding: 0.5rem 1rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: var(--transition);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .language-btn:hover {
+      background-color: var(--primary-dark);
+    }
+
+    .language-dropdown {
+      position: absolute;
+      top: 100%;
+      right: 0;
+      background-color: white;
+      border-radius: var(--border-radius);
+      box-shadow: var(--box-shadow);
+      padding: 0.5rem 0;
+      min-width: 150px;
+      display: none;
+    }
+
+    .language-dropdown.show {
+      display: block;
+    }
+
+    .language-option {
+      padding: 0.5rem 1rem;
+      cursor: pointer;
+      transition: var(--transition);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .language-option:hover {
+      background-color: var(--gray-100);
+    }
+
+    .language-option.active {
+      background-color: var(--primary-light);
+      color: var(--primary);
+    }
+
+    .flag {
+      width: 20px;
+      height: 15px;
+      border-radius: 2px;
+    }
+
+    .theme-toggle-btn {
+      background: var(--gray-200);
+      color: var(--gray-800);
+      border: none;
+      border-radius: var(--border-radius);
+      padding: 0.5rem 0.8rem;
+      font-size: 1.1rem;
+      cursor: pointer;
+      transition: var(--transition);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .theme-toggle-btn:hover {
+      background: var(--primary-light);
+    }
+
+    body.dark-theme {
+      background-color: #181A1B;
+      color: #fff;
+    }
+
+    body.dark-theme .card,
+    body.dark-theme .table-card {
+      background-color: #23262A;
+      color: #fff;
+      box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.25);
+    }
+
+    body.dark-theme h2,
+    body.dark-theme .table-title,
+    body.dark-theme th {
+      color: #fff;
+    }
+
+    body.dark-theme .input-group label,
+    body.dark-theme .info-item .label {
+      color: #bdbdbd;
+    }
+
+    body.dark-theme .input-group input,
+    body.dark-theme .input-group select {
+      background-color: #23262A;
+      color: #fff;
+      border: 1px solid #333;
+    }
+
+    body.dark-theme .input-group input:focus,
+    body.dark-theme .input-group select:focus {
+      border-color: #4cc9f0;
+      box-shadow: 0 0 0 3px rgba(76, 201, 240, 0.15);
+    }
+
+    body.dark-theme .export-btn,
+    body.dark-theme .language-btn,
+    body.dark-theme .theme-toggle-btn {
+      background-color: #4361ee;
+      color: #fff;
+      border: 1px solid #333;
+    }
+
+    body.dark-theme .export-btn:hover,
+    body.dark-theme .language-btn:hover,
+    body.dark-theme .theme-toggle-btn:hover {
+      background-color: #3C57D6;
+    }
+
+    body.dark-theme .language-dropdown {
+      background-color: #23262A;
+      color: #fff;
+      box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.25);
+    }
+
+    body.dark-theme .language-option {
+      color: #fff;
+    }
+
+    body.dark-theme .language-option.active {
+      background-color: #181A1B;
+      color: #4cc9f0;
+    }
+
+    body.dark-theme th {
+      background-color: #23262A;
+      color: #bdbdbd;
+    }
+
+    body.dark-theme td {
+      color: #fff;
+      background-color: #23262A;
+    }
+
+    body.dark-theme tr.green-row td {
+      background-color: #3CB371 !important;
+      color: var(--dark);
+    }
+
+    body.dark-theme tr.current-day-row td {
+      background-color: #222b3a !important;
+    }
+
+    body.dark-theme tr.passed-day-row td,
+    body.dark-theme tr.last-passed-day-row td {
+      background-color: #23262A !important;
+      color: #bdbdbd;
+    }
+
+    body.dark-theme .operation-row td {
+      background-color: #23262A !important;
+      color: #bdbdbd;
+    }
+
+    body.dark-theme .info-item .value {
+      color: #fff;
+    }
+
+    body.dark-theme .loader {
+      border: 5px solid #23262A;
+      border-top: 5px solid #4cc9f0;
+    }
+
+    body.dark-theme .table-header {
+      background-color: #23262A;
+      border-bottom: 1px solid #333;
+    }
+
+    body.dark-theme .table-container {
+      background-color: #23262A;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="language-selector">
+    <button class="theme-toggle-btn" id="themeToggleBtn" onclick="toggleTheme()" title="Alternar tema">
+      <span id="themeIcon">🌙</span>
+    </button>
+    <button class="language-btn" onclick="toggleLanguageDropdown()">
+      <span class="flag">🇧🇷</span>
+      <span id="currentLanguage">Português</span>
+      <span>▼</span>
+    </button>
+    <div class="language-dropdown" id="languageDropdown">
+      <div class="language-option active" data-lang="pt" onclick="changeLanguage('pt')">
+        <span class="flag">🇧🇷</span>
+        <span>Português</span>
+      </div>
+      <div class="language-option" data-lang="en" onclick="changeLanguage('en')">
+        <span class="flag">🇺🇸</span>
+        <span>English</span>
+      </div>
+      <div class="language-option" data-lang="es" onclick="changeLanguage('es')">
+        <span class="flag">🇪🇸</span>
+        <span>Español</span>
+      </div>
+      <div class="language-option" data-lang="fr" onclick="changeLanguage('fr')">
+        <span class="flag">🇫🇷</span>
+        <span>Français</span>
+      </div>
+      <div class="language-option" data-lang="de" onclick="changeLanguage('de')">
+        <span class="flag">🇩🇪</span>
+        <span>Deutsch</span>
+      </div>
+      <div class="language-option" data-lang="it" onclick="changeLanguage('it')">
+        <span class="flag">🇮🇹</span>
+        <span>Italiano</span>
+      </div>
+      <div class="language-option" data-lang="ru" onclick="changeLanguage('ru')">
+        <span class="flag">🇷🇺</span>
+        <span>Русский</span>
+      </div>
+      <div class="language-option" data-lang="zh" onclick="changeLanguage('zh')">
+        <span class="flag">🇨🇳</span>
+        <span>中文</span>
+      </div>
+    </div>
+  </div>
+
+  <div id="loading">
+    <div class="loader"></div>
+    <span id="loadingText">Carregando...</span>
+  </div>
+
+  <div class="container">
+    <h2 id="mainTitle">Projeção de Banca</h2>
+
+    <div class="card">
+      <div class="input-grid">
+        <div class="input-group">
+          <label for="bankInput" id="bankLabel">Banca inicial (US$)</label>
+          <input type="number" id="bankInput" value="2" />
+        </div>
+        <div class="input-group">
+          <label for="daysInput" id="daysLabel">Dias</label>
+          <input type="number" id="daysInput" value="210" />
+        </div>
+        <div class="input-group">
+          <label for="targetInput" id="targetLabel">Meta (US$)</label>
+          <input type="number" id="targetInput" value="" />
+        </div>
+    
+        <div class="input-group">
+          <label for="moeda" id="currencyLabel">Moeda</label>
+          <select name="moeda" id="moeda">
+            <option value="XAUUSD">XAUUSD</option>
+            <option value="USTEC">USTEC</option>
+          </select>
+        </div>
+        <div class="input-group">
+          <label for="operationsInput" id="operationsLabel">Operações</label>
+          <input type="number" id="operationsInput" value="1" />
+        </div>
+        <div class="input-group">
+          <label for="ticksInput" id="ticksLabel">Ticks por operação</label>
+          <input type="number" id="ticksInput" value="500" />
+        </div>
+    
+        <div style="grid-column: 1 / -1; display: flex; gap: 1rem;">
+          <div class="input-group" style="flex-grow: 1;">
+            <label for="marginInput" id="marginLabel">Margem de 0.01 lote</label>
+            <input type="number" id="marginInput" value="" step="0.01" />
+          </div>
+          <div class="input-group" style="flex-grow: 1;">
+            <label for="lotes" id="lotsLabel">Lotes</label>
+            <input type="number" id="lotes" value="250" />
+          </div>
+        </div>
+    
+        <div class="input-group larger-field" style="display: none;">
+          <label for="recalculateOperationsInput" id="recalculateLabel">Recalcular a cada (operações)</label>
+          <input type="number" id="recalculateOperationsInput" value="1" min="1" />
+        </div>
+      </div>
+    
+      <div
+        style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 1rem; margin-bottom: 1rem;">
+        <div
+          style="display: flex; flex-direction: column; gap: 0.5rem; flex-grow: 1; min-width: 200px; max-width: 300px;">
+          <label for="configSelect" id="configSelectLabel"
+            style="font-weight: 600; font-size: 0.875rem; color: var(--gray-700);">Configurações Salvas</label>
+          <select id="configSelect"
+            style="padding: 0.75rem; border: 1px solid var(--gray-300); border-radius: var(--border-radius); font-size: 0.875rem; transition: var(--transition); color: var(--gray-800); background-color: white; width: 100%;">
+            <option value="newConfig" id="newConfigOption"></option>
+          </select>
+          <div id="newConfigNameContainer"
+            style="display: none; align-items: center; gap: 0.5rem; margin-top: 0.5rem; width: 100%;">
+            <input type="text" id="newConfigNameInput" placeholder=""
+              style="flex-grow: 1; padding: 0.75rem; border: 1px solid var(--gray-300); border-radius: var(--border-radius);">
+            <button id="confirmSaveNewConfigBtn" class="export-btn"
+              style="background-color: var(--primary); padding: 0.5rem 1rem;"><span
+                id="confirmSaveNewConfigText"></span></button>
+          </div>
+        </div>
+    
+        <div style="display: flex; gap: 1rem; flex-wrap: wrap; align-items: flex-end;">
+          <button id="saveButton" class="export-btn" onclick="saveCurrentConfig()">
+            <span id="saveButtonText">💾 Salvar Configuração</span>
+          </button>
+          <button id="deleteButton" class="export-btn" onclick="deleteCurrentConfig()"
+            style="background-color: var(--danger);">
+            <span id="deleteButtonText">🗑️ Excluir</span>
+          </button>
+        </div>
+      </div>
+    
+      <div class="info-grid">
+        <div class="info-item period-info" style="display: none;">
+          <span class="label" id="periodLabel">Período</span>
+          <span class="value">10/03/2025 até 19/12/2025</span>
+        </div>
+        <div class="info-item">
+          <span class="label" id="finalBankLabel">Banca Final</span>
+          <span class="value" id="finalBankValue">$0.00</span>
+        </div>
+        <div class="info-item">
+          <span class="label" id="targetAchievedLabel">Meta batida com</span>
+          <span class="value" id="targetAchievedDay">0 dias</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card table-card">
+      <div class="table-header">
+        <h3 class="table-title" id="tableTitle">Projeção Diária</h3>
+        <button id="card-table-button" class="export-btn" onclick="exportToPDF()">
+          <span id="exportButtonText">Exportar para PDF</span>
+        </button>
+      </div>
+      <div class="table-container" id="projectionTableWrapper">
+        <table id="projectionTable">
+          <thead>
+            <tr>
+              <th></th>
+              <th id="dayHeader">Dia</th>
+              <th id="initialBankHeader">Banca Inicial</th>
+              <th id="dailyProfitHeader">Lucro do Dia</th>
+              <th id="profitPerOperationHeader">Lucro por Operação</th>
+              <th id="totalBankHeader">Banca Total</th>
+              <th id="totalBankBrlHeader">Banca Total (BRL)</th>
+              <th id="targetPercentageHeader">Meta %</th>
+              <th id="operationsHeader">Operações</th>
+              <th id="lotHeader">Lote</th>
+              <th id="ticksHeader">Ticks</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const targetInputElement = document.getElementById("targetInput");
+    const marginInput = document.querySelector("#marginInput");
+    const ticksInput = document.querySelector("#ticksInput");
+    const lotesInput = document.querySelector("#lotes");
+    const moedaSelect = document.querySelector("#moeda");
+    const bankInput = document.querySelector("#bankInput");
+    const recalculateOperationsInput = document.querySelector("#recalculateOperationsInput");
+
+    const configSelect = document.getElementById('configSelect');
+    const newConfigNameContainer = document.getElementById('newConfigNameContainer');
+    const newConfigNameInput = document.getElementById('newConfigNameInput');
+    const confirmSaveNewConfigBtn = document.getElementById('confirmSaveNewConfigBtn');
+    const saveButton = document.getElementById('saveButton');
+    const deleteButton = document.getElementById('deleteButton');
+
+    let usdToBrlRate = 0;
+    let defaultMarginValue = 1.49;
+    let originalTicksValue = 500;
+    let xauusdValues = {};
+    let ustecValues = {};
+    let selectedRows = new Set();
+    let currentLanguage = 'pt';
+
+    let allConfigs = {};
+    let activeConfigName = null;
+    let currentCheckboxStates = {};
+
+    const defaultFormValues = {
+      bankInput: 2,
+      daysInput: 210,
+      operationsInput: 1,
+      moeda: 'XAUUSD',
+      ticksInput: 500,
+      targetInput: null,
+      marginInput: null,
+      lotes: 250,
+      recalculateOperationsInput: 1,
+      originalTicksValue: 500
+    };
+
+
+    const translations = {
+      pt: {
+        mainTitle: "Projeção de Banca",
+        bankLabel: "Banca inicial (US$)",
+        daysLabel: "Dias",
+        operationsLabel: "Operações",
+        currencyLabel: "Moeda",
+        ticksLabel: "Ticks por operação",
+        targetLabel: "Meta (US$)",
+        marginLabel: "Margem de 0.01 lote",
+        lotsLabel: "Lotes",
+        recalculateLabel: "Recalcular a cada (operações)",
+        periodLabel: "Período",
+        finalBankLabel: "Banca Final",
+        targetAchievedLabel: "Meta batida com",
+        tableTitle: "Projeção Diária",
+        exportButtonText: "Exportar para PDF",
+        dayHeader: "Dia",
+        initialBankHeader: "Banca Inicial",
+        dailyProfitHeader: "Lucro do Dia",
+        profitPerOperationHeader: "Lucro por Operação",
+        totalBankHeader: "Banca Total",
+        totalBankBrlHeader: "Banca Total (BRL)",
+        targetPercentageHeader: "Meta %",
+        operationsHeader: "Operações",
+        lotHeader: "Lote",
+        ticksHeader: "Ticks",
+        loadingText: "Carregando...",
+        operationText: "Operação",
+        totalText: "Total",
+        targetNotAchieved: "Meta não atingida",
+        daysOfOperation: "dias de operação",
+        saveButtonText: "💾 Salvar Configuração",
+        deleteButtonText: "🗑️ Excluir",
+        configSaved: "Configuração salva com sucesso!",
+        configLoaded: "Configuração carregada com sucesso!",
+        configCleared: "Configuração excluída com sucesso!",
+        noSavedConfig: "Nenhuma configuração salva encontrada.",
+        configSelectLabel: "Configurações Salvas",
+        newConfigOptionText: "➕ Nova Configuração",
+        newConfigNameInputPlaceholder: "Nome da configuração",
+        confirmSaveNewConfigText: "OK",
+        noConfigSelected: "Nenhuma configuração selecionada ou ativa para salvar.",
+        configNotFound: "Configuração não encontrada.",
+        noConfigSelectedToDelete: "Nenhuma configuração selecionada para excluir.",
+        confirmDelete: "Tem certeza que deseja excluir a configuração",
+        configNameExists: "Já existe uma configuração com este nome. Por favor, escolha outro nome.",
+        pleaseEnterConfigName: "Por favor, insira um nome para a nova configuração."
+      },
+      en: {
+        mainTitle: "Bank Projection",
+        bankLabel: "Initial Bank (US$)",
+        daysLabel: "Days",
+        operationsLabel: "Operations",
+        currencyLabel: "Currency",
+        ticksLabel: "Ticks per operation",
+        targetLabel: "Target (US$)",
+        marginLabel: "Margin for 0.01 lot",
+        lotsLabel: "Lots",
+        recalculateLabel: "Recalculate every (operations)",
+        periodLabel: "Period",
+        finalBankLabel: "Final Bank",
+        targetAchievedLabel: "Target achieved with",
+        tableTitle: "Daily Projection",
+        exportButtonText: "Export to PDF",
+        dayHeader: "Day",
+        initialBankHeader: "Initial Bank",
+        dailyProfitHeader: "Daily Profit",
+        profitPerOperationHeader: "Profit per Operation",
+        totalBankHeader: "Total Bank",
+        totalBankBrlHeader: "Total Bank (BRL)",
+        targetPercentageHeader: "Target %",
+        operationsHeader: "Operations",
+        lotHeader: "Lot",
+        ticksHeader: "Ticks",
+        loadingText: "Loading...",
+        operationText: "Operation",
+        totalText: "Total",
+        targetNotAchieved: "Target not achieved",
+        daysOfOperation: "days of operation",
+        saveButtonText: "💾 Save Configuration",
+        deleteButtonText: "🗑️ Delete",
+        configSaved: "Configuration saved successfully!",
+        configLoaded: "Configuration loaded successfully!",
+        configCleared: "Configuration deleted successfully!",
+        noSavedConfig: "No saved configuration found.",
+        configSelectLabel: "Saved Configurations",
+        newConfigOptionText: "➕ New Configuration",
+        newConfigNameInputPlaceholder: "Configuration name",
+        confirmSaveNewConfigText: "OK",
+        noConfigSelected: "No configuration selected or active to save.",
+        configNotFound: "Configuration not found.",
+        noConfigSelectedToDelete: "No configuration selected to delete.",
+        confirmDelete: "Are you sure you want to delete configuration",
+        configNameExists: "A configuration with this name already exists. Please choose another name.",
+        pleaseEnterConfigName: "Please enter a name for the new configuration."
+      },
+      es: {
+        mainTitle: "Proyección de Banca",
+        bankLabel: "Banca inicial (US$)",
+        daysLabel: "Días",
+        operationsLabel: "Operaciones",
+        currencyLabel: "Moneda",
+        ticksLabel: "Ticks por operación",
+        targetLabel: "Meta (US$)",
+        marginLabel: "Margen de 0.01 lote",
+        lotsLabel: "Lotes",
+        recalculateLabel: "Recalcular cada (operaciones)",
+        periodLabel: "Período",
+        finalBankLabel: "Banca Final",
+        targetAchievedLabel: "Meta alcanzada con",
+        tableTitle: "Proyección Diaria",
+        exportButtonText: "Exportar a PDF",
+        dayHeader: "Día",
+        initialBankHeader: "Banca Inicial",
+        dailyProfitHeader: "Beneficio Diario",
+        profitPerOperationHeader: "Beneficio por Operación",
+        totalBankHeader: "Banca Total",
+        totalBankBrlHeader: "Banca Total (BRL)",
+        targetPercentageHeader: "Meta %",
+        operationsHeader: "Operaciones",
+        lotHeader: "Lote",
+        ticksHeader: "Ticks",
+        loadingText: "Cargando...",
+        operationText: "Operación",
+        totalText: "Total",
+        targetNotAchieved: "Meta no alcanzada",
+        daysOfOperation: "días de operación",
+        saveButtonText: "💾 Guardar Configuración",
+        deleteButtonText: "🗑️ Eliminar",
+        configSaved: "¡Configuración guardada exitosamente!",
+        configLoaded: "¡Configuración cargada exitosamente!",
+        configCleared: "¡Configuración eliminada exitosamente!",
+        noSavedConfig: "No se encontró configuración guardada.",
+        configSelectLabel: "Configuraciones Guardadas",
+        newConfigOptionText: "➕ Nueva Configuración",
+        newConfigNameInputPlaceholder: "Nombre de la configuración",
+        confirmSaveNewConfigText: "OK",
+        noConfigSelected: "Ninguna configuración seleccionada o activa para guardar.",
+        configNotFound: "Configuración no encontrada.",
+        noConfigSelectedToDelete: "Ninguna configuración seleccionada para eliminar.",
+        confirmDelete: "¿Está seguro de que desea eliminar la configuración",
+        configNameExists: "Ya existe una configuración con este nombre. Por favor, elija otro nombre.",
+        pleaseEnterConfigName: "Por favor, ingrese un nombre para la nueva configuración."
+      },
+      fr: {
+        mainTitle: "Projection de Banque",
+        bankLabel: "Banque initiale (US$)",
+        daysLabel: "Jours",
+        operationsLabel: "Opérations",
+        currencyLabel: "Devise",
+        ticksLabel: "Ticks par opération",
+        targetLabel: "Objectif (US$)",
+        marginLabel: "Marge pour 0.01 lot",
+        lotsLabel: "Lots",
+        recalculateLabel: "Recalculer tous les (opérations)",
+        periodLabel: "Période",
+        finalBankLabel: "Banque Finale",
+        targetAchievedLabel: "Objectif atteint avec",
+        tableTitle: "Projection Quotidienne",
+        exportButtonText: "Exporter en PDF",
+        dayHeader: "Jour",
+        initialBankHeader: "Banque Initiale",
+        dailyProfitHeader: "Bénéfice Quotidien",
+        profitPerOperationHeader: "Bénéfice par Opération",
+        totalBankHeader: "Banque Totale",
+        totalBankBrlHeader: "Banque Totale (BRL)",
+        targetPercentageHeader: "Objectif %",
+        operationsHeader: "Opérations",
+        lotHeader: "Lot",
+        ticksHeader: "Ticks",
+        loadingText: "Chargement...",
+        operationText: "Opération",
+        totalText: "Total",
+        targetNotAchieved: "Objectif non atteint",
+        daysOfOperation: "jours d'opération",
+        saveButtonText: "💾 Sauvegarder Configuration",
+        deleteButtonText: "🗑️ Supprimer",
+        configSaved: "Configuration sauvegardée avec succès !",
+        configLoaded: "Configuration chargée avec succès !",
+        configCleared: "Configuration supprimée avec succès !",
+        noSavedConfig: "Aucune configuration sauvegardée trouvée.",
+        configSelectLabel: "Configurations Enregistrées",
+        newConfigOptionText: "➕ Nouvelle Configuration",
+        newConfigNameInputPlaceholder: "Nom de la configuration",
+        confirmSaveNewConfigText: "OK",
+        noConfigSelected: "Aucune configuration sélectionnée ou active à enregistrer.",
+        configNotFound: "Configuration introuvable.",
+        noConfigSelectedToDelete: "Aucune configuration sélectionnée à supprimer.",
+        confirmDelete: "Êtes-vous sûr de vouloir supprimer la configuration",
+        configNameExists: "Une configuration avec ce nom existe déjà. Veuillez choisir un autre nom.",
+        pleaseEnterConfigName: "Veuillez entrer un nom pour la nouvelle configuration."
+      },
+      de: {
+        mainTitle: "Bank-Projektion",
+        bankLabel: "Anfangsbank (US$)",
+        daysLabel: "Tage",
+        operationsLabel: "Operationen",
+        currencyLabel: "Währung",
+        ticksLabel: "Ticks pro Operation",
+        targetLabel: "Ziel (US$)",
+        marginLabel: "Marge für 0.01 Lot",
+        lotsLabel: "Lots",
+        recalculateLabel: "Neu berechnen alle (Operationen)",
+        periodLabel: "Zeitraum",
+        finalBankLabel: "Endbank",
+        targetAchievedLabel: "Ziel erreicht mit",
+        tableTitle: "Tägliche Projektion",
+        exportButtonText: "Als PDF exportieren",
+        dayHeader: "Tag",
+        initialBankHeader: "Anfangsbank",
+        dailyProfitHeader: "Tagesgewinn",
+        profitPerOperationHeader: "Gewinn pro Operation",
+        totalBankHeader: "Gesamtbank",
+        totalBankBrlHeader: "Gesamtbank (BRL)",
+        targetPercentageHeader: "Ziel %",
+        operationsHeader: "Operationen",
+        lotHeader: "Lot",
+        ticksHeader: "Ticks",
+        loadingText: "Laden...",
+        operationText: "Operation",
+        totalText: "Gesamt",
+        targetNotAchieved: "Ziel nicht erreicht",
+        daysOfOperation: "Handelstage",
+        saveButtonText: "💾 Konfiguration speichern",
+        deleteButtonText: "🗑️ Löschen",
+        configSaved: "Konfiguration erfolgreich gespeichert!",
+        configLoaded: "Konfiguration erfolgreich geladen!",
+        configCleared: "Konfiguration erfolgreich gelöscht!",
+        noSavedConfig: "Keine gespeicherte Konfiguration gefunden.",
+        configSelectLabel: "Gespeicherte Konfigurationen",
+        newConfigOptionText: "➕ Neue Konfiguration",
+        newConfigNameInputPlaceholder: "Konfigurationsname",
+        confirmSaveNewConfigText: "OK",
+        noConfigSelected: "Keine Konfiguration ausgewählt oder aktiv zum Speichern.",
+        configNotFound: "Konfiguration nicht gefunden.",
+        noConfigSelectedToDelete: "Keine Konfiguration zum Löschen ausgewählt.",
+        confirmDelete: "Möchten Sie die Konfiguration wirklich löschen",
+        configNameExists: "Eine Konfiguration mit diesem Namen existiert bereits. Bitte wählen Sie einen anderen Namen.",
+        pleaseEnterConfigName: "Bitte geben Sie einen Namen für die neue Konfiguration ein."
+      },
+      it: {
+        mainTitle: "Proiezione Banca",
+        bankLabel: "Banca iniziale (US$)",
+        daysLabel: "Giorni",
+        operationsLabel: "Operazioni",
+        currencyLabel: "Valuta",
+        ticksLabel: "Ticks per operazione",
+        targetLabel: "Obiettivo (US$)",
+        marginLabel: "Margine per 0.01 lotto",
+        lotsLabel: "Lotti",
+        recalculateLabel: "Ricalcola ogni (operazioni)",
+        periodLabel: "Periodo",
+        finalBankLabel: "Banca Finale",
+        targetAchievedLabel: "Obiettivo raggiunto con",
+        tableTitle: "Proiezione Giornaliera",
+        exportButtonText: "Esporta in PDF",
+        dayHeader: "Giorno",
+        initialBankHeader: "Banca Iniziale",
+        dailyProfitHeader: "Profitto Giornaliero",
+        profitPerOperationHeader: "Profitto per Operazione",
+        totalBankHeader: "Banca Totale",
+        totalBankBrlHeader: "Banca Totale (BRL)",
+        targetPercentageHeader: "Obiettivo %",
+        operationsHeader: "Operazioni",
+        lotHeader: "Lotto",
+        ticksHeader: "Ticks",
+        loadingText: "Caricamento...",
+        operationText: "Operazione",
+        totalText: "Totale",
+        targetNotAchieved: "Obiettivo non raggiunto",
+        daysOfOperation: "giorni di operazione",
+        saveButtonText: "💾 Salva Configurazione",
+        deleteButtonText: "🗑️ Elimina",
+        configSaved: "Configurazione salvata con successo!",
+        configLoaded: "Configurazione caricata con successo!",
+        configCleared: "Configurazione eliminata con successo!",
+        noSavedConfig: "Nessuna configurazione salvata trovata.",
+        configSelectLabel: "Configurazioni Salvate",
+        newConfigOptionText: "➕ Nuova Configurazione",
+        newConfigNameInputPlaceholder: "Nome configurazione",
+        confirmSaveNewConfigText: "OK",
+        noConfigSelected: "Nessuna configurazione selezionata o attiva da salvare.",
+        configNotFound: "Configurazione non trovata.",
+        noConfigSelectedToDelete: "Nessuna configurazione selezionata da eliminare.",
+        confirmDelete: "Sei sicuro di voler eliminare la configurazione",
+        configNameExists: "Esiste già una configurazione con questo nome. Si prega di scegliere un altro nome.",
+        pleaseEnterConfigName: "Si prega di inserire un nome per la nuova configurazione."
+      },
+      ru: {
+        mainTitle: "Проекция Банка",
+        bankLabel: "Начальный банк (US$)",
+        daysLabel: "Дни",
+        operationsLabel: "Операции",
+        currencyLabel: "Валюта",
+        ticksLabel: "Тики за операцию",
+        targetLabel: "Цель (US$)",
+        marginLabel: "Маржа для 0.01 лота",
+        lotsLabel: "Лоты",
+        recalculateLabel: "Пересчитывать каждые (операции)",
+        periodLabel: "Период",
+        finalBankLabel: "Финальный банк",
+        targetAchievedLabel: "Цель достигнута за",
+        tableTitle: "Ежедневная проекция",
+        exportButtonText: "Экспорт в PDF",
+        dayHeader: "День",
+        initialBankHeader: "Начальный банк",
+        dailyProfitHeader: "Дневная прибыль",
+        profitPerOperationHeader: "Прибыль за операцию",
+        totalBankHeader: "Общий банк",
+        totalBankBrlHeader: "Общий банк (BRL)",
+        targetPercentageHeader: "Цель %",
+        operationsHeader: "Операции",
+        lotHeader: "Лот",
+        ticksHeader: "Тики",
+        loadingText: "Загрузка...",
+        operationText: "Операция",
+        totalText: "Итого",
+        targetNotAchieved: "Цель не достигнута",
+        daysOfOperation: "дней торговли",
+        saveButtonText: "💾 Сохранить Конфигурацию",
+        deleteButtonText: "🗑️ Удалить",
+        configSaved: "Конфигурация успешно сохранена!",
+        configLoaded: "Конфигурация успешно загружена!",
+        configCleared: "Конфигурация успешно удалена!",
+        noSavedConfig: "Сохраненная конфигурация не найдена.",
+        configSelectLabel: "Сохраненные Конфигурации",
+        newConfigOptionText: "➕ Новая Конфигурация",
+        newConfigNameInputPlaceholder: "Имя конфигурации",
+        confirmSaveNewConfigText: "ОК",
+        noConfigSelected: "Конфигурация не выбрана или не активна для сохранения.",
+        configNotFound: "Конфигурация не найдена.",
+        noConfigSelectedToDelete: "Конфигурация для удаления не выбрана.",
+        confirmDelete: "Вы уверены, что хотите удалить конфигурацию",
+        configNameExists: "Конфигурация с таким именем уже существует. Пожалуйста, выберите другое имя.",
+        pleaseEnterConfigName: "Пожалуйста, введите имя для новой конфигурации."
+      },
+      zh: {
+        mainTitle: "银行预测",
+        bankLabel: "初始资金 (US$)",
+        daysLabel: "天数",
+        operationsLabel: "操作",
+        currencyLabel: "货币",
+        ticksLabel: "每次操作点数",
+        targetLabel: "目标 (US$)",
+        marginLabel: "0.01手保证金",
+        lotsLabel: "手数",
+        recalculateLabel: "每(操作)重新计算",
+        periodLabel: "期间",
+        finalBankLabel: "最终资金",
+        targetAchievedLabel: "目标达成于",
+        tableTitle: "每日预测",
+        exportButtonText: "导出为PDF",
+        dayHeader: "天",
+        initialBankHeader: "初始资金",
+        dailyProfitHeader: "日利润",
+        profitPerOperationHeader: "每次操作利润",
+        totalBankHeader: "总资金",
+        totalBankBrlHeader: "总资金 (BRL)",
+        targetPercentageHeader: "目标%",
+        operationsHeader: "操作",
+        lotHeader: "手",
+        ticksHeader: "点数",
+        loadingText: "加载中...",
+        operationText: "操作",
+        totalText: "总计",
+        targetNotAchieved: "目标未达成",
+        daysOfOperation: "个交易日",
+        saveButtonText: "💾 保存配置",
+        deleteButtonText: "🗑️ 删除",
+        configSaved: "配置保存成功！",
+        configLoaded: "配置加载成功！",
+        configCleared: "配置已删除！",
+        noSavedConfig: "未找到保存的配置。",
+        configSelectLabel: "已保存配置",
+        newConfigOptionText: "➕ 新建配置",
+        newConfigNameInputPlaceholder: "配置名称",
+        confirmSaveNewConfigText: "确定",
+        noConfigSelected: "没有选择或活动的配置可保存。",
+        configNotFound: "未找到配置。",
+        noConfigSelectedToDelete: "未选择要删除的配置。",
+        confirmDelete: "您确定要删除配置",
+        configNameExists: "此名称的配置已存在。请选择其他名称。",
+        pleaseEnterConfigName: "请输入新配置的名称。"
+      }
+    };
+
+    function exportToPDF() {
+      const {
+        jsPDF
+      } = window.jspdf;
+      const doc = new jsPDF();
+
+      const t = translations[currentLanguage];
+      const moeda = document.querySelector("#moeda").value;
+      const lotes = parseFloat(document.querySelector("#lotes").value);
+      const initialBank = parseFloat(document.querySelector("#bankInput").value);
+      const days = parseInt(document.querySelector("#daysInput").value);
+      const operationsPerDay = parseInt(document.querySelector("#operationsInput").value);
+      const targetValue = parseFloat(document.querySelector("#targetInput").value);
+      const marginValue = parseFloat(marginInput.value);
+      const recalculateOperations = parseInt(recalculateOperationsInput.value) || 1;
+      const finalBank = document.querySelector("#finalBankValue").textContent;
+      const targetDay = document.querySelector("#targetAchievedDay").textContent;
+      const ticksPerOperation = originalTicksValue;
+      const tickValue = moeda === "XAUUSD" ? 0.1 : 0.01;
+      const maxLotValue = lotes;
+
+      doc.setFontSize(10);
+      doc.text(`${t.bankLabel}: ${initialBank.toFixed(2)}`, 14, 15);
+      doc.text(`${t.daysLabel}: ${days}`, 14, 22);
+      doc.text(`${t.operationsLabel}: ${operationsPerDay}`, 14, 29);
+      doc.text(`${t.ticksLabel}: ${ticksPerOperation}`, 14, 36);
+      doc.text(`${t.targetLabel}: ${targetValue.toFixed(2)}`, 14, 43);
+      doc.text(`${t.marginLabel}: ${marginValue.toFixed(2)}`, 14, 50);
+      doc.text(`${t.currencyLabel}: ${moeda}`, 14, 57);
+      doc.text(`${t.recalculateLabel}: ${recalculateOperations}`, 14, 64);
+      doc.text(`${t.targetAchievedLabel}: ${targetDay}`, 14, 71);
+      doc.text(`${t.finalBankLabel}: ${finalBank}`, 14, 78);
+
+
+      const headers = [
+        '',
+        t.dayHeader, t.initialBankHeader, t.dailyProfitHeader, t.profitPerOperationHeader,
+        t.totalBankHeader, t.totalBankBrlHeader, t.targetPercentageHeader,
+        t.operationsHeader, t.lotHeader, t.ticksHeader
+      ];
+
+      const body = [];
+      let bank = initialBank;
+      let dayCounter = 1;
+
+      while (dayCounter <= days) {
+        let dailyProfit = 0;
+        const dayInitialBank = bank;
+        let dayOperationsBank = bank;
+        let lotUsedFirstOperation = 0;
+        let lotUsedLastOperation = 0;
+        let profitFirstOperation = 0;
+        let profitLastOperation = 0;
+        let operationDetailsForPdf = [];
+
+        for (let op = 1; op <= operationsPerDay; op++) {
+          let maxPossibleLot = Math.floor(dayOperationsBank / marginValue) * 0.01;
+          let lotUsed = Math.max(0.01, Math.min(maxLotValue, maxPossibleLot));
+          const operationProfit = ticksPerOperation * tickValue * lotUsed;
+
+          dayOperationsBank += operationProfit;
+          dailyProfit += operationProfit;
+
+          operationDetailsForPdf.push({
+            profit: operationProfit,
+            lot: lotUsed,
+            bankAfterOperation: dayOperationsBank,
+            bankInBrlAfterOperation: dayOperationsBank * usdToBrlRate
+          });
+
+          if (op === 1) {
+            lotUsedFirstOperation = lotUsed;
+            profitFirstOperation = operationProfit;
+          }
+          if (op === operationsPerDay) {
+            lotUsedLastOperation = lotUsed;
+            profitLastOperation = operationProfit;
+          }
+        }
+
+        bank = dayOperationsBank;
+
+        let profitPerOperationText = profitFirstOperation.toFixed(2);
+        if (profitFirstOperation !== profitLastOperation) {
+          profitPerOperationText += ` até ${profitLastOperation.toFixed(2)}`;
+        }
+
+        let lotRangeText = lotUsedFirstOperation.toFixed(2);
+        if (lotUsedFirstOperation !== lotUsedLastOperation) {
+          lotRangeText += ` até ${lotUsedLastOperation.toFixed(2)}`;
+        }
+
+        const dailyPercentage = (dailyProfit / dayInitialBank) * 100;
+        const bankInBrl = (bank * usdToBrlRate).toLocaleString('pt-BR', {
+          style: 'currency',
+          currency: 'BRL'
+        });
+        const ticksDisplay = ticksPerOperation;
+
+        body.push([
+          '',
+          dayCounter,
+          dayInitialBank.toFixed(2),
+          dailyProfit.toFixed(2),
+          profitPerOperationText,
+          bank.toFixed(2),
+          bankInBrl,
+          `${dailyPercentage.toFixed(2)}%`,
+          operationsPerDay,
+          lotRangeText,
+          ticksDisplay
+        ]);
+
+        operationDetailsForPdf.forEach((detail, index) => {
+          body.push([
+            '',
+            `${t.operationText} ${index + 1}`,
+            '', '',
+            detail.profit.toFixed(2),
+            detail.bankAfterOperation.toFixed(2),
+            detail.bankInBrlAfterOperation.toLocaleString('pt-BR', {
+              style: 'currency',
+              currency: 'BRL'
+            }),
+            '', '',
+            detail.lot.toFixed(2),
+            ticksDisplay
+          ]);
+        });
+
+        if (operationsPerDay > 1) {
+          body.push([
+            '',
+            t.totalText,
+            '', '',
+            dailyProfit.toFixed(2),
+            '', '', '', '', '', ''
+          ]);
+        }
+        dayCounter++;
+      }
+
+
+      doc.autoTable({
+        head: [headers],
+        body: body,
+        startY: 90,
+        theme: 'grid',
+        styles: {
+          fontSize: 6,
+          cellPadding: 1.5,
+          valign: 'middle',
+          halign: 'center'
+        },
+        headStyles: {
+          fillColor: [22, 160, 133],
+          textColor: 255,
+          fontStyle: 'bold'
+        },
+        didParseCell: (data) => {
+          if (data.section === 'body') {
+            const isMainDayRow = !isNaN(parseInt(data.row.raw[1])) && !String(data.row.raw[1]).includes(t.operationText.trim()) && data.row.raw[1] !== t.totalText;
+            const isOperationRow = String(data.row.raw[1]).includes(t.operationText.trim());
+            const isTotalRow = data.row.raw[1] === t.totalText;
+
+            if (isMainDayRow) {
+              data.cell.styles.fillColor = [245, 245, 245];
+            } else if (isOperationRow || isTotalRow) {
+              data.cell.styles.fillColor = [250, 250, 250];
+              data.cell.styles.fontStyle = 'normal';
+              data.cell.styles.fontSize = 5;
+            }
+          }
+        }
+      });
+
+      doc.save("projection.pdf");
+    }
+
+
+    async function fetchMargin(instrument) {
+      try {
+        let accountType = "mt5_classic_real_vc";
+        let leverage = 2000;
+        
+        if (instrument === "USTEC") {
+          leverage = 200;
+        }
+        
+        const response = await fetch("https://www.exness.com/pwapi/", {
+          method: "POST",
+          headers: {
+            accept: "*/*",
+            "accept-language": "pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7",
+            "content-type": "application/json",
+          },
+          body: JSON.stringify({
+            operationName: "Calculate",
+            variables: {
+              input: {
+                account_type: accountType,
+                instrument: instrument,
+                currency: "USD",
+                leverage: leverage,
+                lot: 0.01,
+              },
+            },
+            query: "mutation Calculate($input: CalculationInput!) {\n  calculate(input: $input) {\n    currency\n    margin\n    pip_value\n    swap_long\n    swap_short\n    spread\n    commission\n    __typename\n  }\n}",
+          }),
+        });
+        if (!response.ok) {
+          console.error(`HTTP error! status: ${response.status}`);
+          return null;
+        }
+        const data = await response.json();
+        if (data && data.data && data.data.calculate) {
+          return parseFloat(data.data.calculate.margin).toFixed(2);
+        } else {
+          console.error("Unexpected API response:", data);
+          return null;
+        }
+      } catch (error) {
+        console.error("Error fetching margin:", error);
+        return null;
+      }
+    }
+
+    async function generateProjection() {
+      showLoading();
+      try {
+        const moeda = document.querySelector("#moeda").value;
+        const lotes = parseFloat(document.querySelector("#lotes").value);
+        let initialBank = parseFloat(document.querySelector("#bankInput").value);
+        const days = parseInt(document.querySelector("#daysInput").value);
+        const operationsPerDay = parseInt(document.querySelector("#operationsInput").value);
+        const targetValue = parseFloat(document.querySelector("#targetInput").value);
+        const tickValue = moeda === "XAUUSD" ? 0.1 : 0.001;
+        const marginValue = parseFloat(marginInput.value);
+        let ticksPerOperation = originalTicksValue;
+        let bank = initialBank;
+        const maxLotValue = lotes;
+        const recalculateOperations = parseInt(recalculateOperationsInput.value) || 1;
+
+        let currentLotValue = 0.01;
+        let operationsCounter = 0;
+        let currentMonth = 1;
+        const tableBody = document.querySelector("#projectionTable tbody");
+        tableBody.innerHTML = "";
+        let greenRowAdded = false;
+        let targetAchievedDay = null;
+
+        const startDate = new Date("2025-04-22T00:00:00");
+        const endDate = new Date("2100-12-18T00:00:00");
+        let businessDays = 0;
+        let currentDate = new Date(startDate);
+        let dayCounter = 1;
+        let today = new Date();
+        let lastPassedDay = null;
+        let daysWithCheckmark = 0;
+        let lastDayBank = initialBank;
+
+        while (currentDate <= endDate && dayCounter <= days) {
+          const dayOfWeek = currentDate.getDay();
+          if (dayOfWeek !== 0 && dayOfWeek !== 6) {
+
+            let dailyProfit = 0;
+            const dayInitialBank = lastDayBank;
+            let currentBankForDetailedOperations = dayInitialBank;
+
+            const row = document.createElement("tr");
+            row.dataset.day = dayCounter;
+
+            const formatDate = (date) => {
+              const year = date.getFullYear();
+              const month = String(date.getMonth() + 1).padStart(2, "0");
+              const day = String(date.getDate()).padStart(2, "0");
+              return `${day}/${month}/${year}`;
+            };
+
+            const formattedDate = formatDate(currentDate);
+            if (currentDate < today) {
+              row.classList.add("passed-day-row");
+              lastPassedDay = {
+                row: row,
+                day: dayCounter
+              };
+              daysWithCheckmark++;
+            }
+
+            if (formatDate(currentDate) === formatDate(today) && !greenRowAdded) {
+              row.classList.add("current-day-row");
+            }
+
+            let dayDisplay = dayCounter;
+
+            let lotUsedFirstOperation = 0.01;
+            let lotUsedLastOperation = 0.01;
+            let profitFirstOperation = 0;
+            let profitLastOperation = 0;
+
+            for (let op = 1; op <= operationsPerDay; op++) {
+              let maxPossibleLot = Math.floor(currentBankForDetailedOperations / marginValue) * 0.01;
+              let lotUsed = Math.max(0.01, Math.min(maxLotValue, maxPossibleLot));
+              const operationProfit = ticksPerOperation * tickValue * lotUsed;
+              currentBankForDetailedOperations += operationProfit;
+              dailyProfit += operationProfit;
+
+              if (op === 1) {
+                lotUsedFirstOperation = lotUsed;
+                profitFirstOperation = operationProfit;
+              }
+              if (op === operationsPerDay) {
+                lotUsedLastOperation = lotUsed;
+                profitLastOperation = operationProfit;
+              }
+            }
+            bank = currentBankForDetailedOperations;
+
+
+            if (!greenRowAdded && bank >= targetValue) {
+              row.classList.add("green-row");
+              greenRowAdded = true;
+              targetAchievedDay = dayCounter;
+            }
+
+            let profitPerOperation = profitFirstOperation.toFixed(2);
+            if (profitFirstOperation !== profitLastOperation) {
+              profitPerOperation += " até " + profitLastOperation.toFixed(2);
+            }
+            const ticksDisplay = ticksPerOperation;
+            const dailyPercentage = (dailyProfit / dayInitialBank) * 100;
+            const bankInBrl = bank * usdToBrlRate;
+
+            let lotRange = lotUsedFirstOperation.toFixed(2);
+            if (lotUsedFirstOperation !== lotUsedLastOperation) {
+              lotRange += " até " + lotUsedLastOperation.toFixed(2);
+            }
+
+            row.innerHTML = `
+                <td></td>
+                <td>${dayDisplay}</td>
+                <td>${dayInitialBank.toFixed(2)}</td>
+                <td>${dailyProfit.toFixed(2)}</td>
+                <td>${profitPerOperation}</td>
+                <td>${bank.toFixed(2)}</td>
+                <td>${bankInBrl.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</td>
+                <td>${dailyPercentage.toFixed(2)}%</td>
+                <td>${operationsPerDay}</td>
+                <td>${lotRange}</td>
+                <td>${ticksDisplay}</td>
+              `;
+
+            tableBody.appendChild(row);
+
+            let currentBankAtStartOfOperationsForDisplay = dayInitialBank;
+            const t = translations[currentLanguage];
+            let allOperationsCheckedForThisDay = true;
+
+            for (let op = 1; op <= operationsPerDay; op++) {
+              const operationRow = document.createElement("tr");
+              operationRow.classList.add("operation-row");
+              operationRow.dataset.parentDay = dayCounter;
+              operationRow.style.display = 'none';
+
+              let operationLotValue = 0.01;
+              let maxPossibleLot = Math.floor(currentBankAtStartOfOperationsForDisplay / marginValue) * 0.01;
+              operationLotValue = Math.max(0.01, Math.min(maxLotValue, maxPossibleLot));
+
+              const operationProfit = ticksPerOperation * tickValue * operationLotValue;
+              currentBankAtStartOfOperationsForDisplay += operationProfit;
+
+              const currentBankInBrl = (currentBankAtStartOfOperationsForDisplay * usdToBrlRate).toLocaleString('pt-BR', {
+                style: 'currency',
+                currency: 'BRL'
+              });
+
+              const checkboxId = `checkbox_day${dayCounter}_op${op}`;
+              const isChecked = currentCheckboxStates[`${dayCounter}_${op}`] || false;
+
+              if (!isChecked) {
+                allOperationsCheckedForThisDay = false;
+              }
+
+              operationRow.innerHTML = `
+                      <td style="background-color: var(--gray-50); width: 30px;"><input type="checkbox" id="${checkboxId}" data-day="${dayCounter}" data-op="${op}" ${isChecked ? 'checked' : ''}></td>
+                      <td style="background-color: var(--gray-50); white-space: nowrap;">${t.operationText.trim()} ${op}</td>
+                      <td style="background-color: var(--gray-50);"></td>
+                      <td style="background-color: var(--gray-50);"></td>
+                      <td style="background-color: var(--gray-50);">${operationProfit.toFixed(2)}</td>
+                      <td style="background-color: var(--gray-50);">${currentBankAtStartOfOperationsForDisplay.toFixed(2)}</td>
+                      <td style="background-color: var(--gray-50);"> ${currentBankInBrl}</td>
+                      <td style="background-color: var(--gray-50);"></td>
+                      <td style="background-color: var(--gray-50);"></td>
+                      <td style="background-color: var(--gray-50);"> ${operationLotValue.toFixed(2)}</td>
+                      <td style="background-color: var(--gray-50);"> ${ticksPerOperation}</td>
+                  `;
+              tableBody.appendChild(operationRow);
+
+              const checkboxElement = operationRow.querySelector(`#${checkboxId}`);
+              if (checkboxElement) {
+                checkboxElement.addEventListener('change', handleCheckboxChange);
+              }
+            }
+
+            if (operationsPerDay > 1) {
+              const totalRow = document.createElement("tr");
+              totalRow.classList.add("operation-row");
+              totalRow.dataset.parentDay = dayCounter;
+              totalRow.style.display = 'none';
+              let reCalcDailyProfit = 0;
+              let tempBankForTotal = dayInitialBank;
+              for (let op = 1; op <= operationsPerDay; op++) {
+                let maxPossibleLot = Math.floor(tempBankForTotal / marginValue) * 0.01;
+                let lotUsed = Math.max(0.01, Math.min(maxLotValue, maxPossibleLot));
+                const operationProfit = ticksPerOperation * tickValue * lotUsed;
+                tempBankForTotal += operationProfit;
+                reCalcDailyProfit += operationProfit;
+              }
+
+              totalRow.innerHTML = `
+                      <td style="background-color: var(--gray-50);"></td>
+                      <td style="background-color: var(--gray-50); font-weight: 600;">${t.totalText}</td>
+                      <td style="background-color: var(--gray-50);"></td>
+                      <td style="background-color: var(--gray-50); font-weight: 600;">${reCalcDailyProfit.toFixed(2)}</td>
+                      <td style="background-color: var(--gray-50);"></td>
+                      <td style="background-color: var(--gray-50);"></td>
+                      <td style="background-color: var(--gray-50);"></td>
+                      <td style="background-color: var(--gray-50);"></td>
+                      <td style="background-color: var(--gray-50);"></td>
+                      <td style="background-color: var(--gray-50);"></td>
+                  `;
+              tableBody.appendChild(totalRow);
+            }
+
+            if (allOperationsCheckedForThisDay && operationsPerDay > 0) {
+              row.classList.add("green-row");
+            } else {
+              row.classList.remove("green-row");
+            }
+
+            row.addEventListener('click', (event) => {
+              if (event.target.type === 'checkbox') {
+                return;
+              }
+
+              const clickedDay = row.dataset.day;
+              const isSelected = selectedRows.has(clickedDay);
+
+              if (isSelected) {
+                selectedRows.delete(clickedDay);
+                row.classList.remove('selected-row');
+                document.querySelectorAll(`tr[data-parent-day="${clickedDay}"]`).forEach(el => {
+                  el.style.display = 'none';
+                });
+              } else {
+                selectedRows.add(clickedDay);
+                row.classList.add('selected-row');
+                document.querySelectorAll(`tr[data-parent-day="${clickedDay}"]`).forEach(el => {
+                  el.style.display = 'table-row';
+                });
+              }
+            });
+
+
+            businessDays++;
+            dayCounter++;
+            lastDayBank = bank;
+          }
+          currentDate.setDate(currentDate.getDate() + 1);
+
+          if (dayCounter % 20 === 1 && dayCounter !== 1) {
+            currentMonth += 1;
+          }
+        }
+
+        if (lastPassedDay) {
+          lastPassedDay.row.classList.remove("passed-day-row");
+          lastPassedDay.row.classList.add("last-passed-day-row");
+          lastPassedDay.row.querySelector("td:nth-child(2)").textContent = lastPassedDay.day;
+        }
+
+        const formattedBankValue = new Intl.NumberFormat("en-US", {
+          style: "currency",
+          currency: "USD",
+        }).format(bank);
+        document.querySelector("#finalBankValue").textContent = formattedBankValue;
+        const t = translations[currentLanguage];
+        document.querySelector("#targetAchievedDay").textContent =
+          targetAchievedDay ? `${targetAchievedDay} ${t.daysOfOperation}` : t.targetNotAchieved;
+
+      } finally {
+        hideLoading();
+      }
+    }
+
+    function handleCheckboxChange(event) {
+      const checkbox = event.target;
+      const day = parseInt(checkbox.dataset.day);
+      const op = parseInt(checkbox.dataset.op);
+      const key = `${day}_${op}`;
+
+      currentCheckboxStates[key] = checkbox.checked;
+
+      if (activeConfigName && allConfigs[activeConfigName]) {
+        allConfigs[activeConfigName].checkboxStates = currentCheckboxStates;
+        localStorage.setItem('allProjectionConfigs', JSON.stringify(allConfigs));
+      }
+
+      updateParentRowColor(day);
+    }
+
+    function updateParentRowColor(day) {
+      const parentRow = document.querySelector(`tr[data-day="${day}"]`);
+      if (!parentRow) return;
+
+      const checkboxes = document.querySelectorAll(`tr[data-parent-day="${day}"] input[type="checkbox"]`);
+      if (checkboxes.length === 0) {
+        parentRow.classList.remove("green-row");
+        return;
+      }
+
+      const allChecked = Array.from(checkboxes).every(checkbox => checkbox.checked);
+
+      if (allChecked) {
+        parentRow.classList.add("green-row");
+      } else {
+        parentRow.classList.remove("green-row");
+      }
+    }
+
+
+    async function fetchDollarRate() {
+      try {
+        const response = await fetch("https://economia.awesomeapi.com.br/json/last/USD-BRL");
+        const data = await response.json();
+        if (data.USDBRL && data.USDBRL.ask) {
+          usdToBrlRate = parseFloat(data.USDBRL.ask);
+        }
+        const high = parseFloat(data.USDBRL.high);
+        const low = parseFloat(data.USDBRL.low);
+        const average = (high + low) / 2;
+        const targetValue = 1000000 / average;
+        document.querySelector("#targetInput").value = targetValue.toFixed(2);
+      } catch (error) {
+        console.error("Erro ao buscar a cotação do dólar:", error);
+        usdToBrlRate = 5.25;
+      }
+    }
+
+    function showLoading() {
+      document.getElementById("loading").style.display = "flex";
+    }
+
+    function hideLoading() {
+      document.getElementById("loading").style.display = "none";
+    }
+
+    moedaSelect.addEventListener("change", async () => {
+      showLoading();
+      try {
+        const selectedMoeda = moedaSelect.value;
+        const previousMoeda = moedaSelect.dataset.previousValue || "XAUUSD";
+        
+        if (previousMoeda === "XAUUSD") {
+          xauusdValues.bankInput = bankInput.value;
+          xauusdValues.ticksInput = ticksInput.value;
+          xauusdValues.marginInput = marginInput.value;
+          xauusdValues.originalTicksValue = originalTicksValue;
+        } else if (previousMoeda === "USTEC") {
+          ustecValues.bankInput = bankInput.value;
+          ustecValues.ticksInput = ticksInput.value;
+          ustecValues.marginInput = marginInput.value;
+          ustecValues.originalTicksValue = originalTicksValue;
+        }
+        
+        let ticksValue = 500;
+        if (selectedMoeda === "XAUUSD") {
+          ticksValue = 500;
+          lotesInput.value = 250;
+          if (xauusdValues.bankInput) {
+            bankInput.value = xauusdValues.bankInput;
+            ticksInput.value = xauusdValues.ticksInput;
+            marginInput.value = xauusdValues.marginInput;
+            originalTicksValue = xauusdValues.originalTicksValue;
+          } else {
+            bankInput.value = defaultFormValues.bankInput;
+            ticksInput.value = defaultFormValues.ticksInput;
+            originalTicksValue = defaultFormValues.originalTicksValue;
+          }
+        } else if (selectedMoeda === "USTEC") {
+          ticksValue = 5000;
+          lotesInput.value = 250;
+          
+          if (ustecValues.bankInput) {
+            bankInput.value = ustecValues.bankInput;
+            ticksInput.value = ustecValues.ticksInput;
+            marginInput.value = ustecValues.marginInput;
+            originalTicksValue = ustecValues.originalTicksValue;
+          } else {
+            bankInput.value = defaultFormValues.bankInput;
+            originalTicksValue = ticksValue;
+            ticksInput.value = ticksValue;
+          }
+        }
+        
+        const margin = await fetchMargin(selectedMoeda);
+        marginInput.value = margin !== null ? margin : parseFloat(defaultMarginValue).toFixed(2);
+        
+        moedaSelect.dataset.previousValue = selectedMoeda;
+        
+        generateProjection();
+      } finally {
+        hideLoading();
+      }
+    });
+
+
+    ticksInput.addEventListener('input', () => {
+      const inputValue = parseFloat(ticksInput.value);
+      if (!isNaN(inputValue)) {
+        originalTicksValue = inputValue;
+      } else {
+        originalTicksValue = 0;
+      }
+      generateProjection();
+    });
+
+    marginInput.addEventListener("input", generateProjection);
+    document.querySelector("#lotes").addEventListener("input", generateProjection);
+    document.querySelector("#bankInput").addEventListener("input", generateProjection);
+    document.querySelector("#daysInput").addEventListener("input", generateProjection);
+    document.querySelector("#operationsInput").addEventListener("input", generateProjection);
+    document.querySelector("#targetInput").addEventListener("input", generateProjection);
+    document.querySelector("#recalculateOperationsInput").addEventListener("input", generateProjection);
+
+    function populateConfigSelect() {
+      configSelect.innerHTML = '';
+      const newConfigOption = document.createElement('option');
+      newConfigOption.value = 'newConfig';
+      newConfigOption.id = 'newConfigOption';
+      newConfigOption.textContent = translations[currentLanguage].newConfigOptionText;
+      configSelect.appendChild(newConfigOption);
+
+      let firstConfigName = null;
+      for (const name in allConfigs) {
+        const option = document.createElement('option');
+        option.value = name;
+        option.textContent = name;
+        configSelect.appendChild(option);
+        if (!firstConfigName) {
+          firstConfigName = name;
+        }
+      }
+
+      if (activeConfigName && allConfigs[activeConfigName]) {
+        configSelect.value = activeConfigName;
+      } else if (firstConfigName) {
+        configSelect.value = firstConfigName;
+        activeConfigName = firstConfigName;
+      } else {
+        configSelect.value = 'newConfig';
+        activeConfigName = null;
+      }
+
+      deleteButton.style.display = activeConfigName ? 'inline-flex' : 'none';
+      saveButton.disabled = (configSelect.value === 'newConfig' && !newConfigNameInput.value.trim());
+    }
+
+    function showNameInput(show = true) {
+      newConfigNameContainer.style.display = show ? 'flex' : 'none';
+      if (show) {
+        newConfigNameInput.value = '';
+        newConfigNameInput.placeholder = translations[currentLanguage].newConfigNameInputPlaceholder;
+        confirmSaveNewConfigBtn.querySelector('span').textContent = translations[currentLanguage].confirmSaveNewConfigText;
+        newConfigNameInput.focus();
+      }
+    }
+
+    function saveCurrentConfig(configName = null) {
+      if (configSelect.value === 'newConfig' && !configName) {
+        showNameInput(true);
+        saveButton.disabled = true;
+        return;
+      }
+
+      const nameToSave = configName || activeConfigName;
+
+      if (!nameToSave) {
+        showNotification(translations[currentLanguage].noConfigSelected, 'error');
+        return;
+      }
+
+      const formData = {
+        bankInput: parseFloat(bankInput.value),
+        daysInput: parseInt(document.getElementById('daysInput').value),
+        operationsInput: parseInt(document.getElementById('operationsInput').value),
+        moeda: moedaSelect.value,
+        ticksInput: parseFloat(ticksInput.value),
+        targetInput: parseFloat(targetInputElement.value),
+        marginInput: parseFloat(marginInput.value),
+        lotes: parseFloat(lotesInput.value),
+        recalculateOperationsInput: parseInt(recalculateOperationsInput.value),
+        originalTicksValue: originalTicksValue,
+        checkboxStates: currentCheckboxStates,
+        timestamp: new Date().toISOString()
+      };
+
+      allConfigs[nameToSave] = formData;
+      localStorage.setItem('allProjectionConfigs', JSON.stringify(allConfigs));
+
+      showNotification(translations[currentLanguage].configSaved, 'success');
+      showNameInput(false);
+      saveButton.disabled = false;
+
+      activeConfigName = nameToSave;
+      populateConfigSelect();
+      configSelect.value = activeConfigName;
+      generateProjection();
+    }
+
+    function loadConfig(configName) {
+      if (configName === 'newConfig') {
+        bankInput.value = defaultFormValues.bankInput;
+        document.getElementById('daysInput').value = defaultFormValues.daysInput;
+        document.getElementById('operationsInput').value = defaultFormValues.operationsInput;
+        moedaSelect.value = defaultFormValues.moeda;
+        ticksInput.value = defaultFormValues.ticksInput;
+        lotesInput.value = defaultFormValues.lotes;
+        recalculateOperationsInput.value = defaultFormValues.recalculateOperationsInput;
+        originalTicksValue = defaultFormValues.originalTicksValue;
+        currentCheckboxStates = {};
+
+        Promise.all([
+          fetchDollarRate(),
+          fetchMargin(moedaSelect.value)
+        ]).then(() => {
+          marginInput.value = defaultFormValues.marginInput || parseFloat(defaultMarginValue).toFixed(2);
+          generateProjection();
+        });
+
+        activeConfigName = null;
+        showNameInput(true);
+        saveButton.disabled = true;
+        deleteButton.style.display = 'none';
+        return;
+      }
+
+      showNameInput(false);
+      saveButton.disabled = false;
+      deleteButton.style.display = 'inline-flex';
+
+      const configData = allConfigs[configName];
+      if (configData) {
+        bankInput.value = configData.bankInput;
+        document.getElementById('daysInput').value = configData.daysInput;
+        document.getElementById('operationsInput').value = configData.operationsInput;
+        moedaSelect.value = configData.moeda;
+        ticksInput.value = configData.ticksInput;
+        targetInputElement.value = configData.targetInput;
+        marginInput.value = configData.marginInput;
+        lotesInput.value = configData.lotes;
+        recalculateOperationsInput.value = configData.recalculateOperationsInput;
+        originalTicksValue = configData.originalTicksValue;
+        currentCheckboxStates = configData.checkboxStates || {};
+
+        activeConfigName = configName;
+        generateProjection();
+        showNotification(translations[currentLanguage].configLoaded, 'success');
+      } else {
+        showNotification(translations[currentLanguage].configNotFound, 'error');
+        bankInput.value = defaultFormValues.bankInput;
+        document.getElementById('daysInput').value = defaultFormValues.daysInput;
+        document.getElementById('operationsInput').value = defaultFormValues.operationsInput;
+        moedaSelect.value = defaultFormValues.moeda;
+        ticksInput.value = defaultFormValues.ticksInput;
+        lotesInput.value = defaultFormValues.lotes;
+        recalculateOperationsInput.value = defaultFormValues.recalculateOperationsInput;
+        originalTicksValue = defaultFormValues.originalTicksValue;
+        currentCheckboxStates = {};
+
+        Promise.all([
+          fetchDollarRate(),
+          fetchMargin(moedaSelect.value)
+        ]).then(() => {
+          marginInput.value = defaultFormValues.marginInput || parseFloat(defaultMarginValue).toFixed(2);
+          generateProjection();
+        });
+
+        activeConfigName = null;
+        configSelect.value = 'newConfig';
+        showNameInput(true);
+        saveButton.disabled = true;
+        deleteButton.style.display = 'none';
+        return;
+      }
+    }
+
+    function deleteCurrentConfig() {
+      if (!activeConfigName || configSelect.value === 'newConfig') {
+        showNotification(translations[currentLanguage].noConfigSelectedToDelete, 'info');
+        return;
+      }
+
+      if (confirm(`${translations[currentLanguage].confirmDelete} "${activeConfigName}"?`)) {
+        delete allConfigs[activeConfigName];
+        localStorage.setItem('allProjectionConfigs', JSON.stringify(allConfigs));
+        showNotification(translations[currentLanguage].configCleared, 'success');
+
+        bankInput.value = defaultFormValues.bankInput;
+        document.getElementById('daysInput').value = defaultFormValues.daysInput;
+        document.getElementById('operationsInput').value = defaultFormValues.operationsInput;
+        moedaSelect.value = defaultFormValues.moeda;
+        ticksInput.value = defaultFormValues.ticksInput;
+        lotesInput.value = defaultFormValues.lotes;
+        recalculateOperationsInput.value = defaultFormValues.recalculateOperationsInput;
+        originalTicksValue = defaultFormValues.originalTicksValue;
+        currentCheckboxStates = {};
+
+        Promise.all([
+          fetchDollarRate(),
+          fetchMargin(moedaSelect.value)
+        ]).then(() => {
+          marginInput.value = defaultFormValues.marginInput || parseFloat(defaultMarginValue).toFixed(2);
+          generateProjection();
+        });
+
+        activeConfigName = null;
+        populateConfigSelect();
+        return;
+      }
+    }
+
+    function resetFormToDefaults() {
+      bankInput.value = defaultFormValues.bankInput;
+      document.getElementById('daysInput').value = defaultFormValues.daysInput;
+      document.getElementById('operationsInput').value = defaultFormValues.operationsInput;
+      moedaSelect.value = defaultFormValues.moeda;
+      ticksInput.value = defaultFormValues.ticksInput;
+      if (defaultFormValues.targetInput !== null) {
+        targetInputElement.value = defaultFormValues.targetInput;
+      }
+      marginInput.value = defaultFormValues.marginInput;
+      lotesInput.value = defaultFormValues.lotes;
+      recalculateOperationsInput.value = defaultFormValues.recalculateOperationsInput;
+      originalTicksValue = defaultFormValues.originalTicksValue;
+      ticksInput.value = originalTicksValue;
+      currentCheckboxStates = {};
+    }
+
+    configSelect.addEventListener('change', (event) => {
+      loadConfig(event.target.value);
+    });
+
+    newConfigNameInput.addEventListener('input', () => {
+      saveButton.disabled = !newConfigNameInput.value.trim();
+    });
+
+    confirmSaveNewConfigBtn.addEventListener('click', () => {
+      const newName = newConfigNameInput.value.trim();
+      if (newName) {
+        if (allConfigs[newName]) {
+          showNotification(translations[currentLanguage].configNameExists, 'warning');
+        } else {
+          saveCurrentConfig(newName);
+        }
+      } else {
+        showNotification(translations[currentLanguage].pleaseEnterConfigName, 'warning');
+      }
+    });
+
+    async function initialize() {
+      showLoading();
+      try {
+        await fetchDollarRate();
+        const margin = await fetchMargin(moedaSelect.value);
+        defaultFormValues.marginInput = margin !== null ? parseFloat(margin).toFixed(2) : parseFloat(defaultMarginValue).toFixed(2);
+        marginInput.value = defaultFormValues.marginInput;
+        
+        moedaSelect.dataset.previousValue = moedaSelect.value;
+
+        const savedConfigs = localStorage.getItem('allProjectionConfigs');
+        if (savedConfigs) {
+          allConfigs = JSON.parse(savedConfigs);
+        }
+
+        populateConfigSelect();
+
+        if (activeConfigName && allConfigs[activeConfigName]) {
+          loadConfig(activeConfigName);
+        } else {
+          bankInput.value = defaultFormValues.bankInput;
+          document.getElementById('daysInput').value = defaultFormValues.daysInput;
+          document.getElementById('operationsInput').value = defaultFormValues.operationsInput;
+          moedaSelect.value = defaultFormValues.moeda;
+          ticksInput.value = defaultFormValues.ticksInput;
+          lotesInput.value = defaultFormValues.lotes;
+          recalculateOperationsInput.value = defaultFormValues.recalculateOperationsInput;
+          originalTicksValue = defaultFormValues.originalTicksValue;
+          currentCheckboxStates = {};
+
+          activeConfigName = null;
+          configSelect.value = 'newConfig';
+          showNameInput(true);
+          saveButton.disabled = true;
+          generateProjection();
+        }
+
+        changeLanguage(currentLanguage);
+
+      } finally {
+        hideLoading();
+      }
+    }
+
+    initialize();
+
+    function toggleLanguageDropdown() {
+      document.getElementById('languageDropdown').classList.toggle('show');
+    }
+
+    function changeLanguage(lang) {
+      currentLanguage = lang;
+      const t = translations[lang];
+      document.getElementById('mainTitle').textContent = t.mainTitle;
+      document.getElementById('bankLabel').textContent = t.bankLabel;
+      document.getElementById('daysLabel').textContent = t.daysLabel;
+      document.getElementById('operationsLabel').textContent = t.operationsLabel;
+      document.getElementById('currencyLabel').textContent = t.currencyLabel;
+      document.getElementById('ticksLabel').textContent = t.ticksLabel;
+      document.getElementById('targetLabel').textContent = t.targetLabel;
+      document.getElementById('marginLabel').textContent = t.marginLabel;
+      document.getElementById('lotsLabel').textContent = t.lotsLabel;
+      document.getElementById('recalculateLabel').textContent = t.recalculateLabel;
+      document.getElementById('periodLabel').textContent = t.periodLabel;
+      document.getElementById('finalBankLabel').textContent = t.finalBankLabel;
+      document.getElementById('targetAchievedLabel').textContent = t.targetAchievedLabel;
+      document.getElementById('tableTitle').textContent = t.tableTitle;
+      document.getElementById('exportButtonText').textContent = t.exportButtonText;
+      document.getElementById('loadingText').textContent = t.loadingText;
+      document.getElementById('dayHeader').textContent = t.dayHeader;
+      document.getElementById('initialBankHeader').textContent = t.initialBankHeader;
+      document.getElementById('dailyProfitHeader').textContent = t.dailyProfitHeader;
+      document.getElementById('profitPerOperationHeader').textContent = t.profitPerOperationHeader;
+      document.getElementById('totalBankHeader').textContent = t.totalBankHeader;
+      document.getElementById('totalBankBrlHeader').textContent = t.totalBankBrlHeader;
+      document.getElementById('targetPercentageHeader').textContent = t.targetPercentageHeader;
+      document.getElementById('operationsHeader').textContent = t.operationsHeader;
+      document.getElementById('lotHeader').textContent = t.lotHeader;
+      document.getElementById('ticksHeader').textContent = t.ticksHeader;
+
+      document.getElementById('saveButtonText').textContent = t.saveButtonText;
+      document.getElementById('deleteButtonText').textContent = t.deleteButtonText;
+      document.getElementById('configSelectLabel').textContent = t.configSelectLabel;
+      document.getElementById('newConfigOption').textContent = t.newConfigOptionText;
+      document.getElementById('newConfigNameInput').placeholder = t.newConfigNameInputPlaceholder;
+      document.getElementById('confirmSaveNewConfigText').textContent = t.confirmSaveNewConfigText;
+
+
+      const languageNames = {
+        pt: 'Português',
+        en: 'English',
+        es: 'Español',
+        fr: 'Français',
+        de: 'Deutsch',
+        it: 'Italiano',
+        ru: 'Русский',
+        zh: '中文'
+      };
+      document.getElementById('currentLanguage').textContent = languageNames[lang];
+      const flags = {
+        pt: '🇧🇷',
+        en: '🇺🇸',
+        es: '🇪🇸',
+        fr: '🇫🇷',
+        de: '🇩🇪',
+        it: '🇮🇹',
+        ru: '🇷🇺',
+        zh: '🇨🇳'
+      };
+      document.querySelector('.language-btn .flag').textContent = flags[lang];
+
+      document.querySelectorAll('.language-option').forEach(option => {
+        option.classList.remove('active');
+      });
+      document.querySelector(`[data-lang="${lang}"]`).classList.add('active');
+      document.getElementById('languageDropdown').classList.remove('show');
+
+      populateConfigSelect();
+      if (activeConfigName) {
+        configSelect.value = activeConfigName;
+      } else {
+        configSelect.value = 'newConfig';
+      }
+
+      generateProjection();
+    }
+
+    document.addEventListener('click', function (event) {
+      const dropdown = document.getElementById('languageDropdown');
+      const button = document.querySelector('.language-btn');
+      if (!dropdown.contains(event.target) && !button.contains(event.target)) {
+        dropdown.classList.remove('show');
+      }
+    });
+
+    function setTheme(theme) {
+      if (theme === 'dark') {
+        document.body.classList.add('dark-theme');
+        document.getElementById('themeIcon').textContent = '☀️';
+      } else {
+        document.body.classList.remove('dark-theme');
+        document.getElementById('themeIcon').textContent = '🌙';
+      }
+      localStorage.setItem('theme', theme);
+    }
+
+    function toggleTheme() {
+      const isDark = document.body.classList.contains('dark-theme');
+      setTheme(isDark ? 'light' : 'dark');
+    }
+    (function () {
+      const savedTheme = localStorage.getItem('theme');
+      if (savedTheme === 'dark') {
+        setTheme('dark');
+      } else {
+        setTheme('light');
+      }
+    })();
+
+
+    function showNotification(message, type = 'info') {
+      const existingNotification = document.querySelector('.notification');
+      if (existingNotification) {
+        existingNotification.remove();
+      }
+
+      const notification = document.createElement('div');
+      notification.className = `notification notification-${type}`;
+      notification.textContent = message;
+
+      notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 1rem 1.5rem;
+        border-radius: var(--border-radius);
+        color: white;
+        font-weight: 500;
+        z-index: 10000;
+        animation: slideIn 0.3s ease-out;
+        max-width: 300px;
+        word-wrap: break-word;
+      `;
+
+      switch (type) {
+        case 'success':
+          notification.style.backgroundColor = 'var(--success)';
+          break;
+        case 'error':
+          notification.style.backgroundColor = 'var(--danger)';
+          break;
+        case 'warning':
+          notification.style.backgroundColor = 'var(--warning)';
+          break;
+        default:
+          notification.style.backgroundColor = 'var(--primary)';
+      }
+
+      document.body.appendChild(notification);
+
+      setTimeout(() => {
+        if (notification.parentNode) {
+          notification.style.animation = 'slideOut 0.3s ease-in';
+          setTimeout(() => {
+            if (notification.parentNode) {
+              notification.remove();
+            }
+          }, 300);
+        }
+      }, 3000);
+    }
+
+    const style = document.createElement('style');
+    style.textContent = `
+      @keyframes slideIn {
+        from {
+          transform: translateX(100%);
+          opacity: 0;
+        }
+        to {
+          transform: translateX(0);
+          opacity: 1;
+        }
+      }
+      
+      @keyframes slideOut {
+        from {
+          transform: translateX(0);
+          opacity: 1;
+        }
+        to {
+          transform: translateX(100%);
+          opacity: 0;
+        }
+      }
+      
+      .notification {
+        box-shadow: var(--box-shadow);
+      }
+    `;
+    document.head.appendChild(style);
+  </script>
+</body>
+<footer
+  style="margin-top: 3rem; text-align: center; font-family: 'Inter', sans-serif; font-size: 0.875rem; color: var(--gray-600);">
+  <p>Todos os direitos reservados.</p>
+  <p>&copy; 2025 Lucas Desenvolvimento de Softwares.</p>
+</footer>
+
+</html>
