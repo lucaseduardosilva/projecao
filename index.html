@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="pt-br">
 
@@ -1181,7 +1182,13 @@
       doc.text(`${t.recalculateLabel}: ${recalculateOperations}`, 14, 64);
       doc.text(`${t.targetAchievedLabel}: ${targetDay}`, 14, 71);
       doc.text(`${t.finalBankLabel}: ${finalBank}`, 14, 78);
-
+      const finalBankNumber = Number(finalBank.replace(/[^0-9.-]+/g, ''));
+      const finalBankBrl = isNaN(finalBankNumber) ? 0 : finalBankNumber * usdToBrlRate;
+      const finalBankBrlFormatted = finalBankBrl.toLocaleString('pt-BR', {
+        style: 'currency',
+        currency: 'BRL'
+      });
+      doc.text(`${t.finalBankLabel} (BRL): ${finalBankBrlFormatted}`, 14, 85);
 
       const headers = [
         '',
@@ -1295,7 +1302,7 @@
       doc.autoTable({
         head: [headers],
         body: body,
-        startY: 90,
+        startY: 95,
         theme: 'grid',
         styles: {
           fontSize: 6,
