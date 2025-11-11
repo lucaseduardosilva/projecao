@@ -633,7 +633,7 @@
           </div>
           <div class="input-group" style="flex-grow: 1;">
             <label for="lotes" id="lotsLabel">Lotes</label>
-            <input type="number" id="lotes" value="250" />
+            <input type="number" id="lotes" value="200" />
           </div>
         </div>
     
@@ -756,7 +756,7 @@
       ticksInput: 500,
       targetInput: null,
       marginInput: null,
-      lotes: 250,
+      lotes: 200,
       recalculateOperationsInput: 1,
       originalTicksValue: 500
     };
@@ -1727,7 +1727,7 @@
         let ticksValue = 500;
         if (selectedMoeda === "XAUUSD") {
           ticksValue = 500;
-          lotesInput.value = 250;
+          lotesInput.value = 200;
           if (xauusdValues.bankInput) {
             bankInput.value = xauusdValues.bankInput;
             ticksInput.value = xauusdValues.ticksInput;
@@ -1740,7 +1740,7 @@
           }
         } else if (selectedMoeda === "USTEC") {
           ticksValue = 5000;
-          lotesInput.value = 250;
+          lotesInput.value = 200;
           
           if (ustecValues.bankInput) {
             bankInput.value = ustecValues.bankInput;
