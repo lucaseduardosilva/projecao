@@ -685,6 +685,10 @@
           <span class="value" id="finalBankValue">$0.00</span>
         </div>
         <div class="info-item">
+          <span class="label" id="finalBankBrlLabel">Banca Final (BRL)</span>
+          <span class="value" id="finalBankValueBrl">R$ 0,00</span>
+        </div>
+        <div class="info-item">
           <span class="label" id="targetAchievedLabel">Meta batida com</span>
           <span class="value" id="targetAchievedDay">0 dias</span>
         </div>
@@ -777,6 +781,7 @@
         recalculateLabel: "Recalcular a cada (operações)",
         periodLabel: "Período",
         finalBankLabel: "Banca Final",
+        finalBankBrlLabel: "Banca Final (BRL)",
         targetAchievedLabel: "Meta batida com",
         tableTitle: "Projeção Diária",
         exportButtonText: "Exportar para PDF",
@@ -825,6 +830,7 @@
         recalculateLabel: "Recalculate every (operations)",
         periodLabel: "Period",
         finalBankLabel: "Final Bank",
+        finalBankBrlLabel: "Final Bank (BRL)",
         targetAchievedLabel: "Target achieved with",
         tableTitle: "Daily Projection",
         exportButtonText: "Export to PDF",
@@ -873,6 +879,7 @@
         recalculateLabel: "Recalcular cada (operaciones)",
         periodLabel: "Período",
         finalBankLabel: "Banca Final",
+        finalBankBrlLabel: "Banca Final (BRL)",
         targetAchievedLabel: "Meta alcanzada con",
         tableTitle: "Proyección Diaria",
         exportButtonText: "Exportar a PDF",
@@ -921,6 +928,7 @@
         recalculateLabel: "Recalculer tous les (opérations)",
         periodLabel: "Période",
         finalBankLabel: "Banque Finale",
+        finalBankBrlLabel: "Banque Finale (BRL)",
         targetAchievedLabel: "Objectif atteint avec",
         tableTitle: "Projection Quotidienne",
         exportButtonText: "Exporter en PDF",
@@ -969,6 +977,7 @@
         recalculateLabel: "Neu berechnen alle (Operationen)",
         periodLabel: "Zeitraum",
         finalBankLabel: "Endbank",
+        finalBankBrlLabel: "Endbank (BRL)",
         targetAchievedLabel: "Ziel erreicht mit",
         tableTitle: "Tägliche Projektion",
         exportButtonText: "Als PDF exportieren",
@@ -1017,6 +1026,7 @@
         recalculateLabel: "Ricalcola ogni (operazioni)",
         periodLabel: "Periodo",
         finalBankLabel: "Banca Finale",
+        finalBankBrlLabel: "Banca Finale (BRL)",
         targetAchievedLabel: "Obiettivo raggiunto con",
         tableTitle: "Proiezione Giornaliera",
         exportButtonText: "Esporta in PDF",
@@ -1065,6 +1075,7 @@
         recalculateLabel: "Пересчитывать каждые (операции)",
         periodLabel: "Период",
         finalBankLabel: "Финальный банк",
+        finalBankBrlLabel: "Финальный банк (BRL)",
         targetAchievedLabel: "Цель достигнута за",
         tableTitle: "Ежедневная проекция",
         exportButtonText: "Экспорт в PDF",
@@ -1113,6 +1124,7 @@
         recalculateLabel: "每(操作)重新计算",
         periodLabel: "期间",
         finalBankLabel: "最终资金",
+        finalBankBrlLabel: "最终资金 (BRL)",
         targetAchievedLabel: "目标达成于",
         tableTitle: "每日预测",
         exportButtonText: "导出为PDF",
@@ -1188,7 +1200,7 @@
         style: 'currency',
         currency: 'BRL'
       });
-      doc.text(`${t.finalBankLabel} (BRL): ${finalBankBrlFormatted}`, 14, 85);
+      doc.text(`${t.finalBankBrlLabel}: ${finalBankBrlFormatted}`, 14, 85);
 
       const headers = [
         '',
@@ -1642,6 +1654,11 @@
           currency: "USD",
         }).format(bank);
         document.querySelector("#finalBankValue").textContent = formattedBankValue;
+        const formattedBankValueBrl = new Intl.NumberFormat("pt-BR", {
+          style: "currency",
+          currency: "BRL",
+        }).format(bank * usdToBrlRate);
+        document.querySelector("#finalBankValueBrl").textContent = formattedBankValueBrl;
         const t = translations[currentLanguage];
         document.querySelector("#targetAchievedDay").textContent =
           targetAchievedDay ? `${targetAchievedDay} ${t.daysOfOperation}` : t.targetNotAchieved;
@@ -2091,6 +2108,7 @@
       document.getElementById('recalculateLabel').textContent = t.recalculateLabel;
       document.getElementById('periodLabel').textContent = t.periodLabel;
       document.getElementById('finalBankLabel').textContent = t.finalBankLabel;
+      document.getElementById('finalBankBrlLabel').textContent = t.finalBankBrlLabel;
       document.getElementById('targetAchievedLabel').textContent = t.targetAchievedLabel;
       document.getElementById('tableTitle').textContent = t.tableTitle;
       document.getElementById('exportButtonText').textContent = t.exportButtonText;
