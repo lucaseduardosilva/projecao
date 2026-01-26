@@ -624,21 +624,19 @@
         </div>
         <div class="input-group">
           <label for="ticksInput" id="ticksLabel">Ticks por operação</label>
-          <input type="number" id="ticksInput" value="500" />
+          <input type="number" id="ticksInput" value="300" />
         </div>
     
-        <div style="grid-column: 1 / -1; display: flex; gap: 1rem;">
-          <div class="input-group" style="flex-grow: 1;">
-            <label for="marginInput" id="marginLabel">Margem de 0.01 lote</label>
-            <input type="number" id="marginInput" value="" step="0.01" />
-          </div>
-          <div class="input-group" style="flex-grow: 1;">
-            <label for="lotes" id="lotsLabel">Lotes</label>
-            <input type="number" id="lotes" value="200" />
-          </div>
+        <div class="input-group" style="flex-grow: 1;">
+          <label for="marginInput" id="marginLabel">Margem de 0.01 lote</label>
+          <input type="number" id="marginInput" value="" step="0.01" />
+        </div>
+        <div class="input-group" style="flex-grow: 1;">
+          <label for="lotes" id="lotsLabel">Lotes</label>
+          <input type="number" id="lotes" value="24.99" />
         </div>
     
-        <div class="input-group larger-field" style="display: none;">
+        <div class="input-group larger-field" style="display: none; visibility: hidden;">
           <label for="recalculateOperationsInput" id="recalculateLabel">Recalcular a cada (operações)</label>
           <input type="number" id="recalculateOperationsInput" value="1" min="1" />
         </div>
