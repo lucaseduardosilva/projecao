@@ -1429,16 +1429,7 @@
           </div>
           <div class="calc-field">
             <label for="calcLeverage">Alavancagem</label>
-            <select id="calcLeverage">
-              <option value="2100000000">1:Ilimitada</option>
-              <option value="2000" selected>1:2000</option>
-              <option value="1000">1:1000</option>
-              <option value="500">1:500</option>
-              <option value="200">1:200</option>
-              <option value="100">1:100</option>
-              <option value="50">1:50</option>
-              <option value="30">1:30</option>
-            </select>
+            <select id="calcLeverage"></select>
           </div>
           <div class="calc-field">
             <label for="calcCurrency">Moeda da Conta</label>
@@ -3652,20 +3643,83 @@
     const calcResultsContainer = document.getElementById('calcResultsContainer');
     const calcRunBtn = document.getElementById('calcRunBtn');
 
+    // Alavancagens válidas por instrumento (regras da Exness).
+    // Instrumentos não listados caem no default (metais/forex tier completo).
+    const CALC_DEFAULT_LEVERAGES = [2100000000, 2000, 1000, 500, 200];
+    const CALC_INSTRUMENT_LEVERAGES = {
+      // Índices (alavancagem fixa 1:200)
+      'USTEC': [200],
+      'US30': [200],
+      'US500': [200],
+      'UK100': [200],
+      'DE30': [200],
+      'FR40': [200],
+      'JP225': [200],
+      'AUS200': [200],
+      'HK50': [200],
+      'STOXX50': [200],
+      // Energias
+      'USOIL': [200],
+      'UKOIL': [200],
+      'XNGUSD': [200],
+      // Criptomoedas
+      'BTCUSD': [400, 200, 100, 50],
+      'ETHUSD': [400, 200, 100, 50],
+      'LTCUSD': [400, 200, 100, 50],
+      'XRPUSD': [400, 200, 100, 50],
+      'SOLUSD': [400, 200, 100, 50],
+      'BNBUSD': [400, 200, 100, 50],
+      'ADAUSD': [400, 200, 100, 50],
+      'DOTUSD': [400, 200, 100, 50],
+      // Platina/Paládio
+      'XPTUSD': [200],
+      'XPDUSD': [200],
+    };
+
+    function calcLeveragesFor(instrument) {
+      return CALC_INSTRUMENT_LEVERAGES[instrument] || CALC_DEFAULT_LEVERAGES;
+    }
+
+    function calcLeverageLabel(lev) {
+      return lev >= 2100000000 ? '1:Ilimitada' : '1:' + lev;
+    }
+
+    function rebuildCalcLeverageOptions(preferredValue) {
+      const instrument = calcInstrumentEl.value;
+      const leverages = calcLeveragesFor(instrument);
+      const prev = preferredValue != null ? String(preferredValue) : calcLeverageEl.value;
+      calcLeverageEl.innerHTML = '';
+      leverages.forEach(lev => {
+        const opt = document.createElement('option');
+        opt.value = String(lev);
+        opt.textContent = calcLeverageLabel(lev);
+        calcLeverageEl.appendChild(opt);
+      });
+      const allowed = leverages.map(String);
+      if (allowed.includes(prev)) {
+        calcLeverageEl.value = prev;
+      } else {
+        // Default: maior alavancagem disponível
+        calcLeverageEl.value = allowed[0];
+      }
+    }
+
     function openCalculatorModal() {
       const saved = storageGetJSON(STORAGE_KEYS.CALC, null);
+      let preferredLeverage = null;
       if (saved && typeof saved === 'object') {
         if (saved.instrument) calcInstrumentEl.value = saved.instrument;
         if (saved.accountType) calcAccountTypeEl.value = saved.accountType;
-        if (saved.leverage) calcLeverageEl.value = saved.leverage;
+        if (saved.leverage) preferredLeverage = saved.leverage;
         if (saved.currency) calcCurrencyEl.value = saved.currency;
         if (saved.lot) calcLotEl.value = saved.lot;
         if (saved.base) calcLotBaseEl.value = saved.base;
       } else {
         try { calcInstrumentEl.value = moedaSelect.value; } catch (e) {}
         try { calcAccountTypeEl.value = accountTypeSelect.value; } catch (e) {}
-        try { calcLeverageEl.value = leverageSelect.value; } catch (e) {}
+        try { preferredLeverage = leverageSelect.value; } catch (e) {}
       }
+      rebuildCalcLeverageOptions(preferredLeverage);
       calcModal.classList.add('show');
       runCalculatorCalc();
     }
@@ -3682,7 +3736,11 @@
       if (e.key === 'Escape' && calcModal.classList.contains('show')) closeCalculatorModal();
     });
 
-    [calcInstrumentEl, calcAccountTypeEl, calcLeverageEl, calcCurrencyEl, calcLotBaseEl].forEach(el => {
+    calcInstrumentEl.addEventListener('change', () => {
+      rebuildCalcLeverageOptions();
+      runCalculatorCalc();
+    });
+    [calcAccountTypeEl, calcLeverageEl, calcCurrencyEl, calcLotBaseEl].forEach(el => {
       el.addEventListener('change', runCalculatorCalc);
     });
     let calcLotDebounce = null;
