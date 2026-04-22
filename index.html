@@ -1445,8 +1445,8 @@
             </select>
           </div>
           <div class="calc-field">
-            <label for="calcLot">Volume (lotes)</label>
-            <input type="number" id="calcLot" value="0.01" step="0.01" min="0.01" />
+            <label for="calcLot">Volume (lotes) <span id="calcLotRange" style="color:var(--text-tertiary);font-weight:500;text-transform:none;letter-spacing:0;"></span></label>
+            <input type="number" id="calcLot" value="0.01" step="0.01" min="0.01" max="200" />
           </div>
           <div class="calc-field">
             <label for="calcLotBase">Base do cálculo</label>
@@ -3680,6 +3680,81 @@
       return CALC_INSTRUMENT_LEVERAGES[instrument] || CALC_DEFAULT_LEVERAGES;
     }
 
+    // Limites de volume (lote) por instrumento — especificações Exness.
+    // Instrumentos não listados usam o default (min 0.01, max 200, step 0.01).
+    const CALC_DEFAULT_LOT = { min: 0.01, max: 200, step: 0.01 };
+    const CALC_INSTRUMENT_LOT = {
+      // Metais
+      'XAUUSD':  { min: 0.01, max: 200, step: 0.01 },
+      'XAGUSD':  { min: 0.01, max: 200, step: 0.01 },
+      'XPTUSD':  { min: 0.01, max: 50,  step: 0.01 },
+      'XPDUSD':  { min: 0.01, max: 20,  step: 0.01 },
+      // Índices
+      'USTEC':   { min: 0.01, max: 200, step: 0.01 },
+      'US30':    { min: 0.01, max: 200, step: 0.01 },
+      'US500':   { min: 0.01, max: 200, step: 0.01 },
+      'UK100':   { min: 0.1,  max: 400, step: 0.1  },
+      'DE30':    { min: 0.01, max: 200, step: 0.01 },
+      'FR40':    { min: 0.01, max: 200, step: 0.01 },
+      'JP225':   { min: 0.01, max: 200, step: 0.01 },
+      'AUS200':  { min: 0.01, max: 200, step: 0.01 },
+      'HK50':    { min: 0.1,  max: 200, step: 0.1  },
+      'STOXX50': { min: 0.01, max: 200, step: 0.01 },
+      // Forex Majors
+      'EURUSD':  { min: 0.01, max: 200, step: 0.01 },
+      'GBPUSD':  { min: 0.01, max: 200, step: 0.01 },
+      'USDJPY':  { min: 0.01, max: 200, step: 0.01 },
+      'USDCHF':  { min: 0.01, max: 200, step: 0.01 },
+      'AUDUSD':  { min: 0.01, max: 200, step: 0.01 },
+      'USDCAD':  { min: 0.01, max: 200, step: 0.01 },
+      'NZDUSD':  { min: 0.01, max: 200, step: 0.01 },
+      // Criptomoedas
+      'BTCUSD':  { min: 0.01, max: 20,  step: 0.01 },
+      'ETHUSD':  { min: 0.01, max: 100, step: 0.01 },
+      'LTCUSD':  { min: 0.01, max: 100, step: 0.01 },
+      'XRPUSD':  { min: 0.01, max: 100, step: 0.01 },
+      'SOLUSD':  { min: 0.01, max: 100, step: 0.01 },
+      'BNBUSD':  { min: 0.01, max: 100, step: 0.01 },
+      'ADAUSD':  { min: 0.01, max: 100, step: 0.01 },
+      'DOTUSD':  { min: 0.01, max: 100, step: 0.01 },
+      // Energias
+      'USOIL':   { min: 0.01, max: 500, step: 0.01 },
+      'UKOIL':   { min: 0.01, max: 100, step: 0.01 },
+      'XNGUSD':  { min: 0.01, max: 100, step: 0.01 },
+    };
+
+    function calcLotLimitsFor(instrument) {
+      return CALC_INSTRUMENT_LOT[instrument] || CALC_DEFAULT_LOT;
+    }
+
+    function formatLot(val) {
+      const s = Number(val).toFixed(2);
+      return s.replace(/0+$/, '').replace(/\.$/, '');
+    }
+
+    function applyCalcLotLimits() {
+      const instrument = calcInstrumentEl.value;
+      const { min, max, step } = calcLotLimitsFor(instrument);
+      calcLotEl.min = String(min);
+      calcLotEl.max = String(max);
+      calcLotEl.step = String(step);
+
+      const rangeEl = document.getElementById('calcLotRange');
+      if (rangeEl) {
+        rangeEl.textContent = `(min ${formatLot(min)} · max ${formatLot(max)} · passo ${formatLot(step)})`;
+      }
+
+      // Clamp o valor atual dentro do range, respeitando o step
+      const current = sanitizeNumber(calcLotEl.value, min);
+      let clamped = Math.min(Math.max(current, min), max);
+      // Arredonda para o step mais próximo
+      const steps = Math.round((clamped - min) / step);
+      clamped = +(min + steps * step).toFixed(4);
+      if (clamped < min) clamped = min;
+      if (clamped > max) clamped = max;
+      calcLotEl.value = formatLot(clamped);
+    }
+
     function calcLeverageLabel(lev) {
       return lev >= 2100000000 ? '1:Ilimitada' : '1:' + lev;
     }
@@ -3720,6 +3795,7 @@
         try { preferredLeverage = leverageSelect.value; } catch (e) {}
       }
       rebuildCalcLeverageOptions(preferredLeverage);
+      applyCalcLotLimits();
       calcModal.classList.add('show');
       runCalculatorCalc();
     }
@@ -3738,6 +3814,7 @@
 
     calcInstrumentEl.addEventListener('change', () => {
       rebuildCalcLeverageOptions();
+      applyCalcLotLimits();
       runCalculatorCalc();
     });
     [calcAccountTypeEl, calcLeverageEl, calcCurrencyEl, calcLotBaseEl].forEach(el => {
@@ -3747,6 +3824,10 @@
     calcLotEl.addEventListener('input', () => {
       if (calcLotDebounce) clearTimeout(calcLotDebounce);
       calcLotDebounce = setTimeout(runCalculatorCalc, 350);
+    });
+    calcLotEl.addEventListener('blur', () => {
+      applyCalcLotLimits();
+      runCalculatorCalc();
     });
 
     function renderCalcEmpty(text) {
@@ -3815,11 +3896,16 @@
       const accountType = calcAccountTypeEl.value;
       const leverage = calcLeverageEl.value;
       const currency = calcCurrencyEl.value;
-      const lot = sanitizeNumber(calcLotEl.value, 0.01);
+      const limits = calcLotLimitsFor(instrument);
+      let lot = sanitizeNumber(calcLotEl.value, limits.min);
       const base = calcLotBaseEl.value;
 
       if (!instrument || !accountType || !leverage || !currency) {
         renderCalcEmpty('Preencha todos os campos obrigatórios.');
+        return;
+      }
+      if (lot < limits.min || lot > limits.max) {
+        renderCalcEmpty(`Volume fora do permitido para ${instrument}: min ${formatLot(limits.min)} · max ${formatLot(limits.max)}.`);
         return;
       }
       if (lot <= 0) {
